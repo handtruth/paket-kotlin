@@ -1,0 +1,32 @@
+image: openjdk:8
+
+stages:
+  - build
+  - test
+
+cache:
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
+variables:
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  GIT_SUBMODULE_STRATEGY: normal
+
+Build:
+  stage: build
+  script:
+    - ./gradlew --no-daemon --max-workers=1 assemble
+  artifacts:
+    paths:
+      - build
+  tags: ["default"]
+
+Test:
+  stage: test
+  script:
+    - ./gradlew --no-daemon --max-workers=1 check
+  artifacts:
+    paths:
+      - build
+  tags: ["default"]
