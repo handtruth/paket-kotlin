@@ -5,8 +5,8 @@ plugins {
     jacoco
 }
 
-group = "com.handtruth"
-version = "0.1.0"
+group = "com.handtruth.mc"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -14,6 +14,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.5.1")
     testImplementation(kotlin("test"))
@@ -24,7 +26,7 @@ jacoco {
     reportsDir = file("$buildDir/customJacocoReportDir")
 }
 
-tasks{
+tasks {
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
     }

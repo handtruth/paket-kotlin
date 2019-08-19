@@ -11,4 +11,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "gradle-kotlin"
+rootProject.name = "paket"
