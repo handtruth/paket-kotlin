@@ -17,12 +17,13 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.5.1")
+    testImplementation(platform(project(":platform")))
+    testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(kotlin("test"))
 }
 
 jacoco {
-    toolVersion = "0.8.4"
+    toolVersion = "0.8.5"
     reportsDir = file("$buildDir/customJacocoReportDir")
 }
 
