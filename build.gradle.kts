@@ -13,11 +13,11 @@ repositories {
 }
 
 dependencies {
+    implementation(platform(project(":platform")))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
-    testImplementation(platform(project(":platform")))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(kotlin("test"))
 }
