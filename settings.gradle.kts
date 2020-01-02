@@ -9,3 +9,4 @@ pluginManagement {
 }
 
 rootProject.name = "gradle-kotlin"
+include(":platform")
