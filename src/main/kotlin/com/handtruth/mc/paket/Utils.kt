@@ -77,9 +77,24 @@ internal suspend fun writeVarIntAsync(stream: AsyncOutputStream, integer: Int) {
     stream.writeAsync(bytes, 0, count)
 }
 
-internal fun sizeString(value: String): Int {
-    val size = value.length
-    return sizeVarInt(size) + size
+internal fun sizeString(sequence: CharSequence): Int {
+    var count = 0
+    var i = 0
+    val len = sequence.length
+    while (i < len) {
+        val ch = sequence[i]
+        when {
+            ch.toInt() <= 0x7F -> count++
+            ch.toInt() <= 0x7FF -> count += 2
+            Character.isHighSurrogate(ch) -> {
+                count += 4
+                ++i
+            }
+            else -> count += 3
+        }
+        i++
+    }
+    return count + sizeVarInt(count)
 }
 
 internal fun readString(stream: AsyncInputStream): String {

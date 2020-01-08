@@ -63,6 +63,27 @@ class ProtocolTest {
     )
 
     @Test
+    fun `String Paket`() {
+        class StringPaket(string: String = "") : Paket() {
+            override val id = ExampleID.First
+            var string by string(string)
+        }
+        val paketA = StringPaket("English String with BLYAT")
+        val output = ByteArrayOutputStream()
+        val ts1 = PaketTransmitter.create(object: InputStream() {
+            override fun read() = throw NotImplementedError()
+        }, output)
+        ts1.write(paketA)
+        val bytes = output.toByteArray()
+        val input = ByteArrayInputStream(bytes)
+        val ts2 = PaketTransmitter.create(input, output)
+        val paketB: StringPaket = ts2.read()
+        assertEquals(paketA, paketB)
+        assertEquals(paketA.toString(), paketB.toString())
+        assertEquals(paketA.hashCode(), paketB.hashCode())
+    }
+
+    @Test
     fun `Write and read`() {
         val paketA = paket
         val output = ByteArrayOutputStream()

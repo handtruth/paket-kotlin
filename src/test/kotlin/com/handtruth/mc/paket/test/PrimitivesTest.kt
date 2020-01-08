@@ -1,15 +1,23 @@
 package com.handtruth.mc.paket.test
 
-import com.handtruth.mc.paket.Paket
-import com.handtruth.mc.paket.readLong
-import com.handtruth.mc.paket.sizeVarInt
-import com.handtruth.mc.paket.writeLong
+import com.handtruth.mc.paket.*
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.test.assertEquals
 
 class PrimitivesTest {
+
+    @Test
+    fun `Test sizeString`() {
+        val stringA = "Lol Kek Cheburek"
+        val sizeA = sizeString(stringA) - 1
+        assertEquals(stringA.toByteArray().size, sizeA)
+        val stringB = "Русская строка со словом ЖОПА"
+        val sizeB = sizeString(stringB) - 1
+        assertEquals(stringB.toByteArray().size, sizeB)
+    }
+
     @Test
     fun `Write Read Long`() {
         val output = ByteArrayOutputStream()
