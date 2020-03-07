@@ -10,13 +10,13 @@ internal fun sizeVarInt(value: Int): Int {
     return count
 }
 
-internal fun readVarInt(stream: AsyncInputStream): Int {
+internal inline fun readVarInt(gather: (ByteArray) -> Unit): Int {
     var numRead = 0
     var result = 0
     var read: Int
     val bytes = ByteArray(1)
     do {
-        stream.read(bytes)
+        gather(bytes)
         read = bytes[0].toInt()
         val value = read and 127
         result = result or (value shl 7 * numRead)
@@ -28,54 +28,77 @@ internal fun readVarInt(stream: AsyncInputStream): Int {
     return result
 }
 
-internal suspend fun readVarIntAsync(stream: AsyncInputStream): Int {
+internal fun readVarInt(stream: AsyncInputStream) = readVarInt(stream::read)
+internal suspend fun readVarIntAsync(stream: AsyncInputStream) = readVarInt { stream.readAsync(it) }
+
+internal inline fun writeVarInt(integer: Int, gather: (ByteArray, Int, Int) -> Unit) {
+    var value = integer
+    val bytes = ByteArray(5)
+    var count = 0
+    do {
+        var temp = (value and 127)
+        value = value ushr 7
+        if (value != 0) {
+            temp = temp or 128
+        }
+        bytes[count++] = temp.toByte()
+    } while (value != 0)
+    gather(bytes, 0, count)
+}
+
+internal fun writeVarInt(stream: AsyncOutputStream, integer: Int) = writeVarInt(integer, stream::write)
+internal suspend fun writeVarIntAsync(stream: AsyncOutputStream, integer: Int) =
+    writeVarInt(integer) { a, b, c -> stream.writeAsync(a, b, c) }
+
+internal fun sizeVarLong(value: Long): Int {
+    var integer = value
+    var count = 0
+    do {
+        integer = integer ushr 7
+        count++
+    } while (integer != 0L)
+    return count
+}
+
+internal inline fun readVarLong(gather: (ByteArray) -> Unit): Long {
     var numRead = 0
-    var result = 0
-    var read: Int
+    var result = 0L
+    var read: Long
     val bytes = ByteArray(1)
     do {
-        stream.readAsync(bytes)
-        read = bytes[0].toInt()
-        val value = read and 127
+        gather(bytes)
+        read = bytes[0].toLong()
+        val value = read and 127L
         result = result or (value shl 7 * numRead)
         numRead++
-        if (numRead > 5) {
-            throw RuntimeException("VarInt is too big")
+        if (numRead > 10) {
+            throw RuntimeException("VarLong is too big")
         }
-    } while (read and 128 != 0)
+    } while (read and 128L != 0L)
     return result
 }
 
-internal fun writeVarInt(stream: AsyncOutputStream, integer: Int) {
+internal fun readVarLong(stream: AsyncInputStream) = readVarLong(stream::read)
+internal suspend fun readVarLongAsync(stream: AsyncInputStream) = readVarLong { stream.readAsync(it) }
+
+internal inline fun writeVarLong(integer: Long, gather: (ByteArray, Int, Int) -> Unit) {
     var value = integer
     val bytes = ByteArray(5)
     var count = 0
     do {
         var temp = (value and 127)
         value = value ushr 7
-        if (value != 0) {
+        if (value != 0L) {
             temp = temp or 128
         }
         bytes[count++] = temp.toByte()
-    } while (value != 0)
-    stream.write(bytes, 0, count)
+    } while (value != 0L)
+    gather(bytes, 0, count)
 }
 
-internal suspend fun writeVarIntAsync(stream: AsyncOutputStream, integer: Int) {
-    var value = integer
-    val bytes = ByteArray(5)
-    var count = 0
-    do {
-        var temp = (value and 127)
-        // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
-        value = value ushr 7
-        if (value != 0) {
-            temp = temp or 128
-        }
-        bytes[count++] = temp.toByte()
-    } while (value != 0)
-    stream.writeAsync(bytes, 0, count)
-}
+internal fun writeVarLong(stream: AsyncOutputStream, integer: Long) = writeVarLong(integer, stream::write)
+internal suspend fun writeVarLongAsync(stream: AsyncOutputStream, integer: Long) =
+    writeVarLong(integer) { a, b, c -> stream.writeAsync(a, b, c) }
 
 internal fun sizeString(sequence: CharSequence): Int {
     var count = 0
