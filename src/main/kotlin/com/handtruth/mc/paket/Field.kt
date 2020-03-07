@@ -2,17 +2,20 @@ package com.handtruth.mc.paket
 
 import kotlin.reflect.KProperty
 
-abstract class Field<T>(paket: Paket, initial: T) {
-    init {
-        @Suppress("LeakingThis")
-        paket.fields += this
+open class Field<T>(private val encoder: Encoder<T>, initial: T) {
+    val size: Int get() = encoder.measure(value)
+    fun read(stream: AsyncInputStream) {
+        value = encoder.read(stream, value)
     }
-
-    abstract val size: Int
-    abstract fun read(stream: AsyncInputStream)
-    abstract suspend fun readAsync(stream: AsyncInputStream)
-    abstract fun write(stream: AsyncOutputStream)
-    abstract suspend fun writeAsync(stream: AsyncOutputStream)
+    suspend fun readAsync(stream: AsyncInputStream) {
+        value = encoder.readAsync(stream, value)
+    }
+    fun write(stream: AsyncOutputStream) {
+        encoder.write(stream, value)
+    }
+    suspend fun writeAsync(stream: AsyncOutputStream) {
+        encoder.writeAsync(stream, value)
+    }
 
     var value: T = initial
     operator fun getValue(me: Paket, property: KProperty<*>): T {

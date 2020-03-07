@@ -125,8 +125,8 @@ open class PaketTransmitter(private val input: AsyncInputStream,
 
     private class CounterAsyncInputStream(private val parent: AsyncInputStream) : AsyncInputStream {
         override fun close() = parent.close()
-        override fun read(bytes: ByteArray, offset: Int, length: Int, timeout: Long) {
-            parent.read(bytes, offset, length, timeout)
+        override fun read(bytes: ByteArray, offset: Int, length: Int) {
+            parent.read(bytes, offset, length)
             counter += length
         }
 

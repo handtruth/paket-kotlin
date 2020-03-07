@@ -1,36 +1,32 @@
 package com.handtruth.mc.paket
 
-abstract class ListField<T>(paket: Paket, initial: MutableList<T>) : Field<MutableList<T>>(paket, initial) {
-    override val size get() = sizeVarInt(value.size) + value.sumBy { sizeValue(it) }
-    override fun read(stream: AsyncInputStream) {
+open class ListEncoder<T>(val inner: Encoder<T>) : Encoder<MutableList<T>> {
+    override fun measure(value: MutableList<T>) = sizeVarInt(value.size) + value.sumBy { inner.measure(it) }
+    override fun read(stream: AsyncInputStream, old: MutableList<T>?): MutableList<T> {
         val size = readVarInt(stream)
-        val it = value
-        it.clear()
+        val value = old?.apply { clear() } ?: mutableListOf()
         for (i in 1..size)
-            it += readValue(stream)
+            value += inner.read(stream, null)
+        return value
     }
-    override suspend fun readAsync(stream: AsyncInputStream) {
+    override suspend fun readAsync(stream: AsyncInputStream, old: MutableList<T>?): MutableList<T> {
         val size = readVarIntAsync(stream)
-        val it = value
-        it.clear()
+        val value = old?.apply { clear() } ?: mutableListOf()
         for (i in 1..size)
-            it += readValueAsync(stream)
+            value += inner.readAsync(stream, null)
+        return value
     }
-    override fun write(stream: AsyncOutputStream) {
-        val it = value
-        val size = it.size
+    override fun write(stream: AsyncOutputStream, value: MutableList<T>) {
+        val size = value.size
         writeVarInt(stream, size)
-        it.forEach { writeValue(stream, it) }
+        value.forEach { inner.write(stream, it) }
     }
-    override suspend fun writeAsync(stream: AsyncOutputStream) {
-        val it = value
-        val size = it.size
+    override suspend fun writeAsync(stream: AsyncOutputStream, value: MutableList<T>) {
+        val size = value.size
         writeVarIntAsync(stream, size)
-        it.forEach { writeValueAsync(stream, it) }
+        value.forEach { inner.writeAsync(stream, it) }
     }
-    protected abstract fun sizeValue(value: T): Int
-    protected abstract fun readValue(stream: AsyncInputStream): T
-    protected abstract suspend fun readValueAsync(stream: AsyncInputStream): T
-    protected abstract fun writeValue(stream: AsyncOutputStream, value: T)
-    protected abstract suspend fun writeValueAsync(stream: AsyncOutputStream, value: T)
 }
+
+abstract class ListField<T>(encoder: Encoder<MutableList<T>>, initial: MutableList<T>) :
+        Field<MutableList<T>>(encoder, initial)

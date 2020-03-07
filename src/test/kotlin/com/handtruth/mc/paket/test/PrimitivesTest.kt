@@ -1,9 +1,11 @@
 package com.handtruth.mc.paket.test
 
 import com.handtruth.mc.paket.*
+import com.handtruth.mc.paket.fields.*
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import kotlin.test.assertEquals
 
 class PrimitivesTest {
@@ -68,5 +70,34 @@ class PrimitivesTest {
         assertEquals(1, SimplePaket().size)
         assertEquals(12, WithStringPaket("lolkapopka").size)
 
+    }
+
+    class PathPaket(location: String = "") : Paket() {
+        override val id = SomeIDs.Zero
+        val location by path(location)
+    }
+
+    inline fun <reified P: Paket> readWriteTest(paketA: P) {
+        val output = ByteArrayOutputStream()
+        val ts1 = PaketTransmitter.create(object: InputStream() {
+            override fun read() = throw NotImplementedError()
+        }, output)
+        ts1.write(paketA)
+        val bytes = output.toByteArray()
+        val input = ByteArrayInputStream(bytes)
+        val ts2 = PaketTransmitter.create(input, output)
+        val paketB: P = ts2.read()
+        assertEquals(paketA, paketB)
+        assertEquals(paketA.toString(), paketB.toString())
+        assertEquals(paketA.hashCode(), paketB.hashCode())
+    }
+
+    @Test
+    fun `Check path`() {
+        readWriteTest(PathPaket("/usr/local/share/doc"))
+        readWriteTest(PathPaket(".local/storage"))
+        readWriteTest(PathPaket(""))
+        readWriteTest(PathPaket("/"))
+        readWriteTest(PathPaket("ktlo"))
     }
 }

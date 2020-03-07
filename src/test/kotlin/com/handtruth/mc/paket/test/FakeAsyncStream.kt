@@ -10,7 +10,7 @@ class FakeAsyncStream(private val input: InputStream?,
     constructor(input: InputStream) : this(input, null)
     constructor(output: OutputStream) : this(null, output)
 
-    override fun read(bytes: ByteArray, offset: Int, length: Int, timeout: Long) {
+    override fun read(bytes: ByteArray, offset: Int, length: Int) {
         input!!
         var received = 0
         while (received != length)
@@ -20,7 +20,7 @@ class FakeAsyncStream(private val input: InputStream?,
     override suspend fun readAsync(bytes: ByteArray, offset: Int, length: Int) =
         read(bytes, offset, length)
 
-    override fun write(bytes: ByteArray, offset: Int, length: Int, timeout: Long) =
+    override fun write(bytes: ByteArray, offset: Int, length: Int) =
         output!!.write(bytes, offset, length)
 
     override suspend fun writeAsync(bytes: ByteArray, offset: Int, length: Int) =

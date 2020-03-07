@@ -4,7 +4,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 class JavaInputStream(private val stream: InputStream) : AsyncInputStream {
-    override fun read(bytes: ByteArray, offset: Int, length: Int, timeout: Long) {
+    override fun read(bytes: ByteArray, offset: Int, length: Int) {
         var readCount = 0
         while (readCount < length)
             readCount += stream.read(bytes, offset + readCount, length - readCount)
@@ -14,7 +14,7 @@ class JavaInputStream(private val stream: InputStream) : AsyncInputStream {
 }
 
 class JavaOutputStream(private val stream: OutputStream) : AsyncOutputStream {
-    override fun write(bytes: ByteArray, offset: Int, length: Int, timeout: Long)  = stream.write(bytes, offset, length)
+    override fun write(bytes: ByteArray, offset: Int, length: Int)  = stream.write(bytes, offset, length)
     override suspend fun writeAsync(bytes: ByteArray, offset: Int, length: Int) = throw UnsupportedOperationException()
     override fun close() = stream.close()
 }

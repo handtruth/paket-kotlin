@@ -1,5 +1,8 @@
 package com.handtruth.mc.paket
 
+import java.io.File
+import java.nio.file.Path
+
 internal fun sizeVarInt(value: Int): Int {
     var integer = value
     var count = 0
@@ -83,7 +86,7 @@ internal suspend fun readVarLongAsync(stream: AsyncInputStream) = readVarLong { 
 
 internal inline fun writeVarLong(integer: Long, gather: (ByteArray, Int, Int) -> Unit) {
     var value = integer
-    val bytes = ByteArray(5)
+    val bytes = ByteArray(10)
     var count = 0
     do {
         var temp = (value and 127)
@@ -235,3 +238,50 @@ internal fun writeLong(stream: AsyncOutputStream, value: Long) {
 internal suspend fun writeLongAsync(stream: AsyncOutputStream, value: Long) {
     stream.writeAsync(ByteArray(8) { ((value ushr (it shl 3)) and 255).toByte() })
 }
+
+internal val CharSequence.pathParts get() = split('/')
+    .asSequence()
+    .filter { it.isNotEmpty() }
+
+internal fun sizePath(path: CharSequence) = if (path == "/") 3 else
+    ((if (path.startsWith('/')) 1 else 0) + path.pathParts.sumBy { sizeString(it) } + sizeByte)
+
+internal inline fun readPath(reader: () -> CharSequence): String {
+    val first = reader()
+    if (first.isEmpty())
+        return ""
+    val result = StringBuilder()
+    result.append(first)
+    do {
+        val part = reader()
+        if (part.isEmpty())
+            break
+        result.append('/').append(part)
+    } while (true)
+    return result.toString()
+}
+
+internal fun readPath(stream: AsyncInputStream) = readPath { readString(stream) }
+internal suspend fun readPathAsync(stream: AsyncInputStream) = readPath { readStringAsync(stream) }
+
+internal inline fun writePath(value: String, writer: (String) -> Unit) {
+    val iter = value.pathParts.iterator()
+    if (!iter.hasNext()) {
+        if (value.startsWith('/'))
+            writer("/")
+        writer("")
+        return
+    }
+    val first = iter.next()
+    if (value.startsWith('/'))
+        writer("/$first")
+    else
+        writer(first)
+    while (iter.hasNext())
+        writer(iter.next())
+    writer("")
+}
+
+internal fun writePath(stream: AsyncOutputStream, value: String) = writePath(value) { writeString(stream, it) }
+internal suspend fun writePathAsync(stream: AsyncOutputStream, value: String) =
+    writePath(value) { writeStringAsync(stream, it) }
