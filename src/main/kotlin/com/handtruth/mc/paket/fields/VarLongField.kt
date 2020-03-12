@@ -1,13 +1,13 @@
 package com.handtruth.mc.paket.fields
 
 import com.handtruth.mc.paket.*
+import kotlinx.io.Input
+import kotlinx.io.Output
 
 object VarLongEncoder : Encoder<Long> {
     override fun measure(value: Long) = sizeVarLong(value)
-    override fun read(stream: AsyncInputStream, old: Long?) = readVarLong(stream)
-    override suspend fun readAsync(stream: AsyncInputStream, old: Long?) = readVarLongAsync(stream)
-    override fun write(stream: AsyncOutputStream, value: Long) = writeVarLong(stream, value)
-    override suspend fun writeAsync(stream: AsyncOutputStream, value: Long) = writeVarLongAsync(stream, value)
+    override fun read(input: Input, old: Long?) = readVarLong(input)
+    override fun write(output: Output, value: Long) = writeVarLong(output, value)
 }
 
 object VarLongListEncoder : ListEncoder<Long>(VarLongEncoder)

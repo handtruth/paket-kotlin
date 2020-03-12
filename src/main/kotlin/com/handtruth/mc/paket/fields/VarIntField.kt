@@ -1,13 +1,13 @@
 package com.handtruth.mc.paket.fields
 
 import com.handtruth.mc.paket.*
+import kotlinx.io.Input
+import kotlinx.io.Output
 
 object VarIntEncoder : Encoder<Int> {
     override fun measure(value: Int) = sizeVarInt(value)
-    override fun read(stream: AsyncInputStream, old: Int?) = readVarInt(stream)
-    override suspend fun readAsync(stream: AsyncInputStream, old: Int?) = readVarIntAsync(stream)
-    override fun write(stream: AsyncOutputStream, value: Int) = writeVarInt(stream, value)
-    override suspend fun writeAsync(stream: AsyncOutputStream, value: Int) = writeVarIntAsync(stream, value)
+    override fun read(input: Input, old: Int?) = readVarInt(input)
+    override fun write(output: Output, value: Int) = writeVarInt(output, value)
 }
 
 object VarIntListEncoder : ListEncoder<Int>(VarIntEncoder)

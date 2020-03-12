@@ -1,16 +1,16 @@
 package com.handtruth.mc.paket.fields
 
 import com.handtruth.mc.paket.*
+import kotlinx.io.Input
+import kotlinx.io.Output
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.staticFunctions
 
 class EnumEncoder<T: Enum<T>> private constructor(private val all: Array<T>) : Encoder<T> {
     override fun measure(value: T) = sizeVarInt(value.ordinal)
-    override fun read(stream: AsyncInputStream, old: T?) = all[readVarInt(stream)]
-    override suspend fun readAsync(stream: AsyncInputStream, old: T?) = all[readVarIntAsync(stream)]
-    override fun write(stream: AsyncOutputStream, value: T) = writeVarInt(stream, value.ordinal)
-    override suspend fun writeAsync(stream: AsyncOutputStream, value: T) = writeVarIntAsync(stream, value.ordinal)
+    override fun read(input: Input, old: T?) = all[readVarInt(input)]
+    override fun write(output: Output, value: T) = writeVarInt(output, value.ordinal)
 
     val values get() = all.asSequence()
 

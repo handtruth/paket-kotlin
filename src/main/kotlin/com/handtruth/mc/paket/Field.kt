@@ -1,20 +1,16 @@
 package com.handtruth.mc.paket
 
+import kotlinx.io.Input
+import kotlinx.io.Output
 import kotlin.reflect.KProperty
 
 open class Field<T>(private val encoder: Encoder<T>, initial: T) {
     val size: Int get() = encoder.measure(value)
-    fun read(stream: AsyncInputStream) {
-        value = encoder.read(stream, value)
+    fun read(input: Input) {
+        value = encoder.read(input, value)
     }
-    suspend fun readAsync(stream: AsyncInputStream) {
-        value = encoder.readAsync(stream, value)
-    }
-    fun write(stream: AsyncOutputStream) {
-        encoder.write(stream, value)
-    }
-    suspend fun writeAsync(stream: AsyncOutputStream) {
-        encoder.writeAsync(stream, value)
+    fun write(output: Output) {
+        encoder.write(output, value)
     }
 
     var value: T = initial

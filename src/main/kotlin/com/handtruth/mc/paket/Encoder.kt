@@ -1,9 +1,11 @@
 package com.handtruth.mc.paket
 
+import kotlinx.io.Input
+import kotlinx.io.Output
+import kotlin.reflect.KClass
+
 interface Encoder<T> {
     fun measure(value: T): Int
-    fun read(stream: AsyncInputStream, old: T?): T
-    suspend fun readAsync(stream: AsyncInputStream, old: T?): T
-    fun write(stream: AsyncOutputStream, value: T)
-    suspend fun writeAsync(stream: AsyncOutputStream, value: T)
+    fun read(input: Input, old: T?): T
+    fun write(output: Output, value: T)
 }

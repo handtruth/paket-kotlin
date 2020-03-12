@@ -1,13 +1,13 @@
 package com.handtruth.mc.paket.fields
 
 import com.handtruth.mc.paket.*
+import kotlinx.io.Input
+import kotlinx.io.Output
 
 object Int64Encoder : Encoder<Long> {
     override fun measure(value: Long) = sizeLong
-    override fun read(stream: AsyncInputStream, old: Long?) = readLong(stream)
-    override suspend fun readAsync(stream: AsyncInputStream, old: Long?) = readLongAsync(stream)
-    override fun write(stream: AsyncOutputStream, value: Long) = writeLong(stream, value)
-    override suspend fun writeAsync(stream: AsyncOutputStream, value: Long) = writeLongAsync(stream, value)
+    override fun read(input: Input, old: Long?) = readLong(input)
+    override fun write(output: Output, value: Long) = writeLong(output, value)
 }
 
 object Int64ListEncoder : ListEncoder<Long>(Int64Encoder)

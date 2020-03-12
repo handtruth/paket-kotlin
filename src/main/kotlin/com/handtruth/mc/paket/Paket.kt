@@ -1,5 +1,8 @@
 package com.handtruth.mc.paket
 
+import kotlinx.io.*
+import kotlin.reflect.full.companionObjectInstance
+
 abstract class Paket {
     abstract val id: Enum<*>
 
@@ -31,5 +34,31 @@ abstract class Paket {
     fun <F> field(field: Field<F>): Field<F> {
         mutableFields += field
         return field
+    }
+
+    fun write(output: Output) {
+        writeVarInt(output, id.ordinal)
+        for (field in fields)
+            field.write(output)
+    }
+
+    fun read(input: Input) {
+        val otherId = readVarInt(input)
+        validate(id.ordinal == otherId) { "Wrong paket id (${id.ordinal} expected, got $otherId)" }
+        for (field in fields)
+            field.read(input)
+    }
+
+    open fun clear() {}
+
+    fun recycle(): Boolean {
+        val companion = this::class.companionObjectInstance
+        if (companion !is PaketPool<*>)
+            return false
+        assert(companion.`class` == this::class) { "PaketPool must be the same type as paket" }
+        @Suppress("UNCHECKED_CAST")
+        companion as PaketPool<Paket>
+        companion.recycle(this)
+        return true
     }
 }

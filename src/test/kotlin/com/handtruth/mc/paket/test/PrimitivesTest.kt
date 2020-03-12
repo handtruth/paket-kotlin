@@ -1,12 +1,17 @@
 package com.handtruth.mc.paket.test
 
 import com.handtruth.mc.paket.*
-import com.handtruth.mc.paket.fields.*
+import com.handtruth.mc.paket.fields.PathField
+import com.handtruth.mc.paket.fields.path
+import com.handtruth.mc.paket.fields.string
+import com.handtruth.mc.paket.util.Path
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.ByteArrayInput
+import kotlinx.io.ByteArrayOutput
+import kotlinx.io.pool.DefaultPool
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class PrimitivesTest {
 
@@ -22,14 +27,12 @@ class PrimitivesTest {
 
     @Test
     fun `Write Read Long`() {
-        val output = ByteArrayOutputStream()
-        val stream1 = FakeAsyncStream(output)
-        writeLong(stream1, -1)
+        val output = ByteArrayOutput()
+        writeLong(output, -1)
         val bytes = output.toByteArray()
         assertEquals(listOf<Byte>(-1, -1, -1, -1, -1, -1, -1, -1), bytes.asList())
-        val input = ByteArrayInputStream(bytes)
-        val stream2 = FakeAsyncStream(input)
-        assertEquals(-1L, readLong(stream2))
+        val input = ByteArrayInput(bytes)
+        assertEquals(-1L, readLong(input))
     }
 
 
@@ -38,15 +41,15 @@ class PrimitivesTest {
         val bytes = ByteArray(8) {
             if (it < 4) -1 else 0
         }
-        val input = ByteArrayInputStream(bytes)
-        val output = ByteArrayOutputStream()
-        val stream = FakeAsyncStream(input, output)
-        val n = readLong(stream)
+        val input = ByteArrayInput(bytes)
+        val output = ByteArrayOutput()
+        val n = readLong(input)
         println("$n != -1")
-        writeLong(stream, n)
+        writeLong(output, n)
         assertEquals(bytes.asList(), output.toByteArray().asList())
     }
 
+    @Suppress("unused")
     enum class SomeIDs {
         Zero, One, Two, Three
     }
@@ -58,7 +61,7 @@ class PrimitivesTest {
     class WithStringPaket(s: String = "") : Paket() {
         override val id = SomeIDs.Three
 
-        var s by string(s)
+        init { string(s) }
     }
 
     @Test
@@ -74,30 +77,34 @@ class PrimitivesTest {
 
     class PathPaket(location: String = "") : Paket() {
         override val id = SomeIDs.Zero
-        val location by path(location)
-    }
+        var location by path(location)
 
-    inline fun <reified P: Paket> readWriteTest(paketA: P) {
-        val output = ByteArrayOutputStream()
-        val ts1 = PaketTransmitter.create(object: InputStream() {
-            override fun read() = throw NotImplementedError()
-        }, output)
-        ts1.write(paketA)
-        val bytes = output.toByteArray()
-        val input = ByteArrayInputStream(bytes)
-        val ts2 = PaketTransmitter.create(input, output)
-        val paketB: P = ts2.read()
-        assertEquals(paketA, paketB)
-        assertEquals(paketA.toString(), paketB.toString())
-        assertEquals(paketA.hashCode(), paketB.hashCode())
+        override fun clear() {
+            location = Path.empty
+        }
+
+        companion object : PaketPool<PathPaket>(PathPaket::class)
     }
 
     @Test
     fun `Check path`() {
-        readWriteTest(PathPaket("/usr/local/share/doc"))
-        readWriteTest(PathPaket(".local/storage"))
-        readWriteTest(PathPaket(""))
-        readWriteTest(PathPaket("/"))
-        readWriteTest(PathPaket("ktlo"))
+        runBlocking {
+            val paket = writeReadPaket(PathPaket("/usr/local/share/doc"))
+            assertTrue(paket.recycle())
+            assertEquals(Path.empty, paket.location)
+            writeReadPaket(PathPaket(".local/storage")).recycle()
+            writeReadPaket(PathPaket("")).recycle()
+            writeReadPaket(PathPaket("/")).recycle()
+            writeReadPaket(PathPaket("ktlo")).recycle()
+        }
+    }
+    object PathPaketPool : DefaultPool<PathPaket>(10) {
+        override fun produceInstance() = PathPaket()
+    }
+
+    @Test
+    fun `lol kek`() {
+        val paket = PathPaketPool.borrow()
+        PathPaketPool.recycle(paket)
     }
 }

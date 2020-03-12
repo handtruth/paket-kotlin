@@ -1,13 +1,13 @@
 package com.handtruth.mc.paket.fields
 
 import com.handtruth.mc.paket.*
+import kotlinx.io.Input
+import kotlinx.io.Output
 
 object BoolEncoder : Encoder<Boolean> {
     override fun measure(value: Boolean) = sizeBoolean
-    override fun read(stream: AsyncInputStream, old: Boolean?) = readBoolean(stream)
-    override suspend fun readAsync(stream: AsyncInputStream, old: Boolean?) = readBooleanAsync(stream)
-    override fun write(stream: AsyncOutputStream, value: Boolean) = writeBoolean(stream, value)
-    override suspend fun writeAsync(stream: AsyncOutputStream, value: Boolean) = writeBooleanAsync(stream, value)
+    override fun read(input: Input, old: Boolean?) = readBoolean(input)
+    override fun write(output: Output, value: Boolean) = writeBoolean(output, value)
 }
 
 object BoolListEncoder : ListEncoder<Boolean>(BoolEncoder)

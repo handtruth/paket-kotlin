@@ -1,13 +1,13 @@
 package com.handtruth.mc.paket.fields
 
 import com.handtruth.mc.paket.*
+import kotlinx.io.Input
+import kotlinx.io.Output
 
 object ByteEncoder : Encoder<Byte> {
     override fun measure(value: Byte) = sizeByte
-    override fun read(stream: AsyncInputStream, old: Byte?) = readByte(stream)
-    override suspend fun readAsync(stream: AsyncInputStream, old: Byte?) = readByteAsync(stream)
-    override fun write(stream: AsyncOutputStream, value: Byte) = writeByte(stream, value)
-    override suspend fun writeAsync(stream: AsyncOutputStream, value: Byte) = writeByteAsync(stream, value)
+    override fun read(input: Input, old: Byte?) = readByte(input)
+    override fun write(output: Output, value: Byte) = writeByte(output, value)
 }
 
 object ByteListEncoder : ListEncoder<Byte>(ByteEncoder)
