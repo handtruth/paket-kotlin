@@ -2,6 +2,12 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
     }
+    val kotlinVersion: String by settings
+    plugins {
+        kotlin("multiplatform") version kotlinVersion
+    }
 }
 
-rootProject.name = "gradle-wrapper"
+rootProject.name = "kotlin"
+
+include(":platform")

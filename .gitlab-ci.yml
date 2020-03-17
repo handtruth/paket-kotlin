@@ -3,6 +3,7 @@ image: openjdk:8
 stages:
   - build
   - test
+  - analysis
 
 cache:
   paths:
@@ -20,7 +21,6 @@ Build:
   artifacts:
     paths:
       - build
-  tags: ["default"]
 
 Test:
   stage: test
@@ -29,4 +29,10 @@ Test:
   artifacts:
     paths:
       - build
-  tags: ["default"]
+
+Coverage:
+  stage: analysis
+  script:
+    - ./gradlew --no-daemon --max-workers=1 testCoverageReport
+    - cat build/jacoco-reports/html/index.html || true
+  coverage: "/Total.*?([0-9]{1,3})%/"
