@@ -42,6 +42,6 @@ Package:
   stage: package
   script:
     - ./gradlew --no-daemon --max-workers=1 publishToMavenLocal
-  tags: [ deploy ]
+  tags: [ package ]
   only:
     - tags
