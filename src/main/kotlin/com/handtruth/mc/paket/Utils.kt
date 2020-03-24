@@ -4,6 +4,9 @@ import com.handtruth.mc.paket.util.Path
 import kotlinx.io.*
 import kotlinx.io.text.readUtf8String
 import kotlinx.io.text.writeUtf8String
+import kotlin.reflect.KClass
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.primaryConstructor
 
 internal fun sizeVarInt(value: Int): Int {
     var integer = value
@@ -160,4 +163,33 @@ internal fun writePath(output: Output, value: Path) {
     for (segment in value)
         writeString(output, segment)
     writeByte(output, 0)
+}
+
+internal fun sizeByteArray(value: ByteArray) = value.size.let { sizeVarInt(it) + it }
+
+internal fun readByteArray(input: Input): ByteArray {
+    val size = readVarInt(input)
+    val data = ByteArray(size)
+    // TODO: Change when that bug will be fixed
+    for (i in data.indices) {
+        data[i] = input.readByte()
+    }
+    return data
+}
+
+internal fun writeByteArray(output: Output, value: ByteArray) {
+    val size = value.size
+    writeVarInt(output, size)
+    // TODO: Change when that bug will be fixed
+    value.forEach { output.writeByte(it) }
+}
+
+@PublishedApi
+internal fun <P: Paket> constructPaket(`class`: KClass<P>): P {
+    val companion = `class`.companionObjectInstance
+    @Suppress("UNCHECKED_CAST")
+    return if (companion is PaketPool<*> && companion.`class` == `class`)
+        companion.borrow() as P
+    else
+        `class`.primaryConstructor!!.callBy(emptyMap())
 }

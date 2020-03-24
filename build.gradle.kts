@@ -6,25 +6,27 @@ plugins {
 }
 
 group = "com.handtruth.mc"
-version = "2.1.0"
+version = "3.1.0"
 
 repositories {
     mavenCentral()
-}
-
-allprojects {
-    repositories {
-        mavenLocal()
+    jcenter()
+    maven {
+        url = uri("http://maven.handtruth.com/")
     }
 }
 
 dependencies {
-    implementation(platform(project(":platform")))
+    implementation(platform("com.handtruth.internal:platform:0.0.1"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
     fun kotlinx(name: String) = "org.jetbrains.kotlinx:kotlinx-$name"
     implementation(kotlinx("io-jvm"))
     implementation(kotlinx("coroutines-core"))
+    implementation(kotlinx("serialization-runtime"))
+
+    fun mc(name: String) = "com.handtruth.mc:$name"
+    implementation(mc("nbt-kotlin"))
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(kotlinx("coroutines-test"))
@@ -40,11 +42,11 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = "1.8"
-            //verbose = true
             freeCompilerArgs = freeCompilerArgs + listOf(
                 "-Xuse-experimental=kotlin.ExperimentalUnsignedTypes",
                 "-Xuse-experimental=kotlin.contracts.ExperimentalContracts",
                 "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                "-Xuse-experimental=kotlinx.serialization.ImplicitReflectionSerializer",
                 "-XXLanguage:+InlineClasses"
             )
         }

@@ -2,6 +2,7 @@ package com.handtruth.mc.paket.test
 
 import com.handtruth.mc.paket.*
 import com.handtruth.mc.paket.fields.*
+import com.handtruth.mc.paket.util.Path
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.*
 import org.junit.jupiter.api.Test
@@ -41,22 +42,22 @@ class ProtocolTest {
         override val id = ExampleID.Second
         var pVarInt by varInt(pVarInt)
         var pEnum by enum(pEnum)
-        //var pString by string(pString)
+        var pString by string(pString)
         var pBool by bool(pBool)
         var pUInt8 by byte(pUInt8)
         var pUInt16 by uint16(pUInt16.toUShort())
         var pInt64 by int64(pInt64)
-        var pPath by path(pPath)
         var pVarLong by varLong(pVarLong)
-        //var pListVarInt by listOfVarInt(pListVarInt)
-        //var pListEnum by listOfEnum(pListEnum)
-        //var pListString by listOfString(pListString)
-        //var pListBool by listOfBool(pListBool)
-        //var pListUInt8 by listOfByte(pListUInt8)
-        //var pListUInt16 by listOfUint16(pListUInt16)
-        //var pListInt64 by listOfInt64(pListInt64)
-        //var pListVarLong by listOfVarLong(pListVarLong)
-        //var pListPath by listOfPath(pListPath.map { Path(it) })
+        var pPath by path(pPath)
+        var pListVarInt by listOfVarInt(pListVarInt)
+        var pListEnum by listOfEnum(pListEnum)
+        var pListString by listOfString(pListString)
+        var pListBool by listOfBool(pListBool)
+        var pListUInt8 by listOfByte(pListUInt8)
+        var pListUInt16 by listOfUint16(pListUInt16)
+        var pListInt64 by listOfInt64(pListInt64)
+        var pListVarLong by listOfVarLong(pListVarLong)
+        var pListPath by listOfPath(pListPath.map { Path(it) })
     }
 
     private val paket get() = ExamplePaket(

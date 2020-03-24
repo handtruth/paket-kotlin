@@ -62,4 +62,7 @@ inline class Path @PublishedApi internal constructor(val segments: List<String>)
     override fun toString(): String {
         return segments.joinToString("/")
     }
+
+    operator fun plus(segment: String) = Path(segments + segment)
+    operator fun plus(path: Path) = Path(segments + path.segments)
 }

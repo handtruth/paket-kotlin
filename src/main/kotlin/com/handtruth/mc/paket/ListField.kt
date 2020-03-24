@@ -4,7 +4,7 @@ import kotlinx.io.Input
 import kotlinx.io.Output
 import kotlin.reflect.KClass
 
-open class ListEncoder<T: Any>(val inner: Encoder<T>) : Encoder<MutableList<T>> {
+open class ListEncoder<T>(val inner: Encoder<T>) : Encoder<MutableList<T>> {
     override fun measure(value: MutableList<T>) = sizeVarInt(value.size) + value.sumBy { inner.measure(it) }
     override fun read(input: Input, old: MutableList<T>?): MutableList<T> {
         val size = readVarInt(input)
