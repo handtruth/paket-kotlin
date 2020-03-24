@@ -1,12 +1,14 @@
 @file:Suppress("UNUSED_VARIABLE")
 
 plugins {
+    id("com.gladed.androidgitversion")
     kotlin("multiplatform")
+    `maven-publish`
     jacoco
 }
 
-group = "com.handtruth"
-version = "0.1.0"
+group = "com.handtruth.example"
+version = androidGitVersion.name()
 
 repositories {
     mavenCentral()
@@ -14,7 +16,10 @@ repositories {
 
 kotlin {
     jvm()
-    js()
+    js {
+        browser()
+        nodejs()
+    }
     mingwX64()
     mingwX86()
     linuxX64()
@@ -22,11 +27,6 @@ kotlin {
     linuxArm64()
     wasm32()
     sourceSets {
-        all {
-            dependencies {
-                implementation(project(":platform"))
-            }
-        }
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib"))
@@ -62,8 +62,9 @@ jacoco {
 }
 
 tasks {
+    val jvmTest by getting
     val testCoverageReport by creating(JacocoReport::class) {
-        dependsOn("jvmTest")
+        dependsOn(jvmTest)
         group = "Reporting"
         description = "Generate Jacoco coverage reports."
         val coverageSourceDirs = arrayOf(
