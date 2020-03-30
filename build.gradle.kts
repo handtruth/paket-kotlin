@@ -7,6 +7,10 @@ plugins {
     jacoco
 }
 
+androidGitVersion {
+    prefix = "v"
+}
+
 group = "com.handtruth.example"
 version = androidGitVersion.name()
 
