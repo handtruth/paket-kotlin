@@ -8,13 +8,19 @@ plugins {
     jacoco
 }
 
+androidGitVersion {
+    prefix = "v"
+}
+
 group = "com.handtruth.mc"
 version = androidGitVersion.name()
 
-repositories {
-    mavenCentral()
-    maven {
-        url = uri("http://maven.handtruth.com/")
+allprojects {
+    repositories {
+        mavenCentral()
+        maven {
+            url = uri("http://maven.handtruth.com/")
+        }
     }
 }
 
@@ -30,12 +36,15 @@ kotlin {
         fun io(name: String = "") = kotlinx("io".suffix(name), "0.2.0")
         fun coroutines(name: String = "") = kotlinx("coroutines".suffix(name), "1.3.5")
         fun serializationRuntime(name: String = "") = kotlinx("serialization-runtime".suffix(name), "0.20.0")
+        fun mc(name: String, version: String) = "com.handtruth.mc:$name:$version"
         all {
             with (languageSettings) {
                 enableLanguageFeature("InlineClasses")
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
                 useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
                 useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
                 useExperimentalAnnotation("kotlinx.serialization.ImplicitReflectionSerializer")
+                useExperimentalAnnotation("com.handtruth.mc.paket.ExperimentalPaketApi")
             }
         }
         val commonMain by getting {
@@ -44,29 +53,35 @@ kotlin {
                 implementation(io())
                 implementation(coroutines("core-common"))
                 implementation(serializationRuntime("common"))
+                compileOnly(mc("nbt-kotlin", "0.1.0"))
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation(coroutines("test-common"))
             }
         }
         val jvmMain by getting {
             dependencies {
+                implementation(coroutines("core"))
+                implementation(serializationRuntime())
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation(kotlin("test-junit5"))
+                implementation(coroutines("test"))
+                implementation(kotlin("test-junit"))
+                implementation(mc("nbt-kotlin", "0.1.0"))
             }
         }
         val jsMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-js"))
+                implementation(coroutines("core-js"))
+                implementation(serializationRuntime("js"))
             }
         }
         val jsTest by getting {
@@ -106,5 +121,18 @@ tasks {
             html.isEnabled = true
             html.destination = file("${buildDir}/jacoco-reports/html")
         }
+    }
+    val prepareSample by creating(WriteProperties::class) {
+        outputFile = file("modules/sample/gradle.properties")
+        comment = "Auto generated file"
+        val kotlinVersion: String by project
+        val paketVersion = project.version
+        properties(
+            "kotlinVersion" to kotlinVersion,
+            "paketVersion" to paketVersion
+        )
+    }
+    val publishToMavenLocal by getting {
+        dependsOn(prepareSample)
     }
 }
