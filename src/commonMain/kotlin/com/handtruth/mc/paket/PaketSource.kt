@@ -28,12 +28,14 @@ inline fun <P: Paket, R> PaketPool<P>.take(block: (P) -> R): R {
 
 abstract class AbstractPaketPool<P: Paket>(capacity: Int = 25) : PaketPool<P> {
     @Suppress("UNCHECKED_CAST")
-    private val pool = object : DefaultPool<P>(capacity) {
+    private inner class RealPool(capacity: Int) : DefaultPool<P>(capacity) {
         override fun produceInstance() = create().also {
             it.attachToPool(this@AbstractPaketPool as PaketPool<in Paket>)
         }
         override fun validateInstance(instance: P) = instance.clear()
     }
+    private val pool = RealPool(capacity)
+
     protected abstract fun create(): P
     final override fun produce() = pool.borrow()
     final override fun recycle(paket: P) {
