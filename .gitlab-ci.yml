@@ -1,4 +1,4 @@
-image: openjdk:8
+image: reg.handtruth.com/roots/kotlin/build
 
 stages:
   - build
@@ -39,11 +39,11 @@ Coverage:
     - ./gradlew --no-daemon --max-workers=1 testCoverageReport
     - cat build/jacoco-reports/html/index.html || true
   coverage: "/Total.*?([0-9]{1,3})%/"
+  except: [ tags ]
 
 Package:
   stage: package
   script:
     - ./gradlew --no-daemon --max-workers=1 publishToMavenLocal
   tags: [ package ]
-  only:
-    - tags
+  only: [ tags ]

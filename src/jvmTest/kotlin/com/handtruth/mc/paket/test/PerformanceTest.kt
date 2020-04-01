@@ -77,19 +77,19 @@ class PerformanceTest {
         runBlocking {
             val iterations = 100000
             RentPaket.take {
-                writeReadPaket(it()).recycle()
+                writeReadPaket(it(), RentPaket).recycle()
             }
-            writeReadPaket(CreatePaket())
+            writeReadPaket(CreatePaket(), CreatePaket)
             val rentTime = measureTimeMillis {
                 for (i in 1..iterations) {
                     RentPaket.take {
-                        writeReadPaket(it()).recycle()
+                        writeReadPaket(it(), RentPaket).recycle()
                     }
                 }
             }
             val createTime = measureTimeMillis {
                 for (i in 1..iterations) {
-                    writeReadPaket(CreatePaket())
+                    writeReadPaket(CreatePaket(), CreatePaket)
                 }
             }
             println("Create: $createTime ms, Rent: $rentTime ms")

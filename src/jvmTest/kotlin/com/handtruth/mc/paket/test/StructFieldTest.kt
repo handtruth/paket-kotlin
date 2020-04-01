@@ -35,7 +35,8 @@ class StructFieldTest {
     @Test
     fun `custom object`() {
         runBlocking {
-            val paket = writeReadPaket(CustomObjectPaket(CustomObject(39, 4268559, System.currentTimeMillis())))
+            val paket = writeReadPaket(
+                CustomObjectPaket(CustomObject(39, 4268559, System.currentTimeMillis())), CustomObjectPaket)
             paket.obj = CustomObject(0,-1, -1)
             val output = ByteArrayOutput()
             PaketSender(output).use {

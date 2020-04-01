@@ -3,10 +3,12 @@ package com.handtruth.mc.paket.test
 import com.handtruth.mc.paket.*
 import com.handtruth.mc.paket.fields.*
 import com.handtruth.mc.paket.util.Path
-import kotlinx.coroutines.runBlocking
+import io.ktor.test.dispatcher.testSuspend
 import kotlinx.io.ByteArrayInput
 import kotlinx.io.ByteArrayOutput
-import org.junit.Test
+import kotlinx.io.use
+import kotlin.random.Random
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
@@ -59,18 +61,20 @@ class ProtocolTest {
         var pListVarLong by listOfVarLong(pListVarLong)
         var pListPath by listOfPath(pListPath.map { Path(it) })
 
-        companion object : JvmPaketCreator<ExamplePaket>(ExamplePaket::class)
+        companion object : PaketCreator<ExamplePaket> {
+            override fun produce() = ExamplePaket()
+        }
     }
 
     private val paket get() = ExamplePaket(
         56845, ExampleEnum.Two, "lolkekdude", true, 68, 65535u.toShort(),
-        System.currentTimeMillis(), System.currentTimeMillis(), "/usr/local/share/doc",
+        Random.nextLong(), Random.nextLong(), "/usr/local/share/doc",
         listOf(64, -668, 894615, 6, -65321, -1),
         listOf(ExampleEnum.Three, ExampleEnum.One, ExampleEnum.Zero, ExampleEnum.Two),
         listOf("lol", "kek", "dude", "popka".repeat(450), "/usr/local/share/doc", ".local/storage", "", "/"),
         listOf(true, false, true), listOf(89, -128, 127, 8),
-        listOf(Short.MAX_VALUE, 48453.toShort(), 0), listOf(895, System.currentTimeMillis(), -852),
-        listOf(0, Short.MAX_VALUE.toLong() + 1L, 8373, 0x223L, System.currentTimeMillis(), -543),
+        listOf(Short.MAX_VALUE, 48453.toShort(), 0), listOf(895, Random.nextLong(), -852),
+        listOf(0, Short.MAX_VALUE.toLong() + 1L, 8373, 0x223L, Random.nextLong(), -543),
         listOf("/usr/local/share/doc", ".local/storage", "", "/", "ktlo")
     )
 
@@ -78,24 +82,24 @@ class ProtocolTest {
         override val id = ExampleID.First
         var string by string(string)
 
-        companion object : JvmPaketCreator<StringPaket>(StringPaket::class)
-    }
-
-    @Test
-    fun `String Paket`() {
-        runBlocking {
-            val paketA = StringPaket(""/*"English String with BLYAT"*/)
-            writeReadPaket(paketA)
-            val expected = "Русская строка с ЖОПОЙ"
-            paketA.string = expected
-            assertEquals(expected, paketA.fields.first().value)
+        companion object : PaketCreator<StringPaket> {
+            override fun produce() = StringPaket()
         }
     }
 
     @Test
-    fun `Write and read`() = runBlocking {
+    fun paketWithStringCheck() = testSuspend {
+        val paketA = StringPaket("English String with BLYAT")
+        writeReadPaket(paketA, StringPaket)
+        val expected = "Русская строка с ЖОПОЙ"
+        paketA.string = expected
+        assertEquals(expected, paketA.fields.first().value)
+    }
+
+    @Test
+    fun writeAndReadBigPaket() = testSuspend {
         val paketA = paket
-        val paketB = writeReadPaket(paketA)
+        val paketB = writeReadPaket(paketA, ExamplePaket)
         paketB.pBool = false
         assertNotEquals(paketA, paketB)
         assertNotEquals(paketA.hashCode(), paketB.hashCode())
@@ -105,37 +109,35 @@ class ProtocolTest {
     class SimplePaket : Paket() {
         override val id = ExampleID.First
 
-        companion object : JvmPaketCreator<SimplePaket>(SimplePaket::class)
-    }
-
-    @Test
-    fun `Simple Paket`() {
-        runBlocking {
-            val paketB = writeReadPaket(SimplePaket())
-            assertEquals(ExampleID.First, paketB.id)
+        companion object : PaketCreator<SimplePaket> {
+            override fun produce() = SimplePaket()
         }
     }
 
     @Test
-    fun `Drop pakets`() {
-        runBlocking {
-            val paketA = paket
-            val output = ByteArrayOutput()
-            val sender = PaketSender(output)
-            sender.use {
-                sender.send(ExamplePaket(23))
-                sender.send(SimplePaket())
-                sender.send(paketA)
-            }
-            val bytes = output.toByteArray()
-            val input = ByteArrayInput(bytes)
-            val receiver = PaketReceiver(input, coroutineContext)
-            receiver.drop()
-            assertEquals(ExampleID.First.ordinal, receiver.catchOrdinal())
-            assertEquals(ExampleID.Second.ordinal, receiver.catchOrdinal())
-            assertFailsWith<IllegalProtocolStateException> {
-                receiver.receive<SimplePaket>()
-            }
+    fun simplePaketCheck() = testSuspend {
+        val paketB = writeReadPaket(SimplePaket(), SimplePaket)
+        assertEquals(ExampleID.First, paketB.id)
+    }
+
+    @Test
+    fun dropCheck() = testSuspend {
+        val paketA = paket
+        val output = ByteArrayOutput()
+        val sender = PaketSender(output, coroutineContext)
+        sender.use {
+            sender.send(ExamplePaket(23))
+            sender.send(SimplePaket())
+            sender.send(paketA)
+        }
+        val bytes = output.toByteArray()
+        val input = ByteArrayInput(bytes)
+        val receiver = PaketReceiver(input, coroutineContext)
+        receiver.drop()
+        assertEquals(ExampleID.First.ordinal, receiver.catchOrdinal())
+        assertEquals(ExampleID.Second.ordinal, receiver.catchOrdinal())
+        assertFailsWith<IllegalProtocolStateException> {
+            receiver.receive(SimplePaket)
         }
     }
 }

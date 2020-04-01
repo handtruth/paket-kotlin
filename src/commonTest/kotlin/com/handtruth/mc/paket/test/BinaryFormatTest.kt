@@ -6,10 +6,10 @@ import com.handtruth.mc.paket.PaketCreator
 import com.handtruth.mc.paket.fields.binary
 import com.handtruth.mc.paket.fields.json
 import com.handtruth.mc.paket.fields.serial
-import kotlinx.coroutines.runBlocking
+import io.ktor.test.dispatcher.testSuspend
 import kotlinx.serialization.Serializable
-import org.junit.Test
 import kotlin.random.Random
+import kotlin.test.Test
 
 class NBTFormatTest {
     companion object {
@@ -26,18 +26,7 @@ class NBTFormatTest {
         val delay: Long = 0,
         val speed: Float = 0f,
         val movement: Double = .0
-    ) {
-        /*
-        override fun equals(other: Any?): Boolean {
-            return other is Attribute
-        }
-
-        override fun hashCode(): Int {
-            return 0
-        }
-
-         */
-    }
+    )
 
     @Serializable
     data class Player(
@@ -71,21 +60,19 @@ class NBTFormatTest {
     }
 
     @Test
-    fun readWriteNBT() {
-        runBlocking {
-            writeReadPaket(NBTTestPaket(
-                DataForNBT("Lol kek Kotlin berg", 5468, listOf(3.0f, 5.6f, -89f)),
-                DataForNBT("Русская строка с необычными символами для ASCII",
-                    -89765, listOf(0.2f, -34.5f),
-                    Player("Ktlo", 24982984545979, mapOf(
-                            668 to Attribute(
-                                10, 569, true, 68,
-                                Random.nextLong(), 5688f, 647878.343
-                            )
+    fun readWriteNBT() = testSuspend {
+        writeReadPaket(NBTTestPaket(
+            DataForNBT("Lol kek Kotlin berg", 5468, listOf(3.0f, 5.6f, -89f)),
+            DataForNBT("Русская строка с необычными символами для ASCII",
+                -89765, listOf(0.2f, -34.5f),
+                Player("Ktlo", 24982984545979, mapOf(
+                        668 to Attribute(
+                            10, 569, true, 68,
+                            Random.nextLong(), 5688f, 647878.343
                         )
                     )
                 )
-            ))
-        }
+            )
+        ), NBTTestPaket)
     }
 }

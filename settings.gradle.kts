@@ -19,8 +19,6 @@ pluginManagement {
 
 rootProject.name = "paket-kotlin"
 
-enableFeaturePreview("GRADLE_METADATA")
-
 fun module(name: String) {
     include(":$name")
     project(":$name").projectDir = file("modules/$name")

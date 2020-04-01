@@ -10,7 +10,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-internal suspend inline fun <reified P: Paket> writeReadPaket(paketA: P): P {
+internal suspend inline fun <reified P: Paket> writeReadPaket(paketA: P, source: PaketSource<P>): P {
     // write
     val output = ByteArrayOutput()
     val sender = PaketSender(output, coroutineContext)
@@ -37,7 +37,7 @@ internal suspend inline fun <reified P: Paket> writeReadPaket(paketA: P): P {
     assertEquals(paketA.id.ordinal, receiver.idOrdinal, "Receiver contains wrong paket id")
     assertEquals(size, receiver.size, "Receiver got wrong paket size")
     assertTrue(receiver.isCaught, "Paket receiver should caught a paket")
-    val paketB: P = receiver.use { it.receive() }
+    val paketB: P = receiver.use { it.receive(source) }
     assertFalse(receiver.isCaught, "Paket receiver should be empty after paket paket reading operation")
     assertTrue(receiver.broken, "Receiver was not broken after close operation")
     assertFailsWith<BrokenObjectException>("Useful broken receivers should not operate") {

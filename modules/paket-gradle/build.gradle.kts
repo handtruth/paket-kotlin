@@ -14,16 +14,10 @@ version = rootProject.version
 
 val pluginId = "com.handtruth.mc.paket"
 
-repositories {
-    maven {
-        url = uri("https://mvn.handtruth.com/")
-    }
-}
-
 dependencies {
-    val platformVersion: String by project
-    implementation(platform("com.handtruth.internal:platform:$platformVersion"))
-    kapt(platform("com.handtruth.internal:platform:$platformVersion"))
+    val handtruthPlatform = platform("com.handtruth.internal:platform")
+    implementation(handtruthPlatform)
+    kapt(handtruthPlatform)
 
     implementation(kotlin("stdlib"))
     implementation(kotlin("gradle-plugin-api"))

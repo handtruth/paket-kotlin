@@ -5,9 +5,9 @@ plugins {
 }
 
 dependencies {
-    val platformVersion: String by project
-    implementation(platform("com.handtruth.internal:platform:$platformVersion"))
-    kapt(platform("com.handtruth.internal:platform:$platformVersion"))
+    val handtruthPlatform = platform("com.handtruth.internal:platform")
+    implementation(handtruthPlatform)
+    kapt(handtruthPlatform)
 
     implementation(kotlin("stdlib-jdk8"))
     compileOnly(kotlin("compiler-embeddable"))

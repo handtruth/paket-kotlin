@@ -8,3 +8,6 @@ interface Codec<T> {
     fun read(input: Input, old: T?): T
     fun write(output: Output, value: T)
 }
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T> Codec<T>.read(input: Input) = read(input, null)

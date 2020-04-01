@@ -18,8 +18,13 @@ version = androidGitVersion.name()
 allprojects {
     repositories {
         mavenCentral()
-        maven {
-            url = uri("http://maven.handtruth.com/")
+        maven("http://maven.handtruth.com/")
+    }
+    val platformVersion: String by project
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "com.handtruth.internal" && requested.name == "platform")
+                useVersion(platformVersion)
         }
     }
 }
@@ -27,16 +32,18 @@ allprojects {
 kotlin {
     jvm()
     js {
-        browser()
+        browser {
+            testTask {
+                useKarma {
+                    usePhantomJS()
+                }
+            }
+        }
         nodejs()
     }
     sourceSets {
-        fun String.suffix(str: String) = if (str.isEmpty()) this else "$this-$str"
-        fun kotlinx(name: String, version: String) = "org.jetbrains.kotlinx:kotlinx-$name:$version"
-        fun io(name: String = "") = kotlinx("io".suffix(name), "0.2.0")
-        fun coroutines(name: String = "") = kotlinx("coroutines".suffix(name), "1.3.5")
-        fun serializationRuntime(name: String = "") = kotlinx("serialization-runtime".suffix(name), "0.20.0")
-        fun mc(name: String, version: String) = "com.handtruth.mc:$name:$version"
+        fun kotlinx(name: String) = "org.jetbrains.kotlinx:kotlinx-$name"
+        fun mc(name: String) = "$group:$name"
         all {
             with (languageSettings) {
                 enableLanguageFeature("InlineClasses")
@@ -46,47 +53,60 @@ kotlin {
                 useExperimentalAnnotation("kotlinx.serialization.ImplicitReflectionSerializer")
                 useExperimentalAnnotation("com.handtruth.mc.paket.ExperimentalPaketApi")
             }
+            dependencies {
+                val platform = dependencies.platform("com.handtruth.internal:platform")
+                implementation(platform)
+                compileOnly(platform)
+            }
         }
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib"))
-                implementation(io())
-                implementation(coroutines("core-common"))
-                implementation(serializationRuntime("common"))
-                compileOnly(mc("nbt-kotlin", "0.1.0"))
+                implementation(kotlinx("io"))
+                implementation(kotlinx("coroutines-core-common"))
+                implementation(kotlinx("serialization-runtime-common"))
+                compileOnly(mc("nbt-kotlin"))
+                compileOnly("io.ktor:ktor-io")
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
+                implementation(mc("nbt-kotlin"))
+                implementation("io.ktor:ktor-io")
+                implementation("io.ktor:ktor-test-dispatcher")
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation(coroutines("core"))
-                implementation(serializationRuntime())
+                implementation(kotlinx("coroutines-core"))
+                implementation(kotlinx("serialization-runtime"))
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
+                compileOnly("io.ktor:ktor-io-jvm")
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation(coroutines("test"))
                 implementation(kotlin("test-junit"))
-                implementation(mc("nbt-kotlin", "0.1.0"))
+                implementation("io.ktor:ktor-io-jvm")
+                implementation("io.ktor:ktor-test-dispatcher-jvm")
             }
         }
         val jsMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-js"))
-                implementation(coroutines("core-js"))
-                implementation(serializationRuntime("js"))
+                implementation(kotlinx("coroutines-core-js"))
+                implementation(kotlinx("serialization-runtime-js"))
+                compileOnly("io.ktor:ktor-io-js")
             }
         }
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
+                implementation("io.ktor:ktor-io-js")
+                implementation("io.ktor:ktor-test-dispatcher-js")
             }
         }
     }

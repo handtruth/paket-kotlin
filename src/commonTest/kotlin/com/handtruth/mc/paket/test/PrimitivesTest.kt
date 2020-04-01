@@ -4,7 +4,8 @@ import com.handtruth.mc.paket.*
 import com.handtruth.mc.paket.fields.path
 import com.handtruth.mc.paket.fields.string
 import com.handtruth.mc.paket.util.Path
-import kotlinx.coroutines.runBlocking
+import io.ktor.test.dispatcher.testSuspend
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.io.ByteArrayInput
 import kotlinx.io.ByteArrayOutput
 import kotlin.test.Test
@@ -13,7 +14,7 @@ import kotlin.test.assertEquals
 class PrimitivesTest {
 
     @Test
-    fun `Test sizeString`() {
+    fun sizeStringTest() {
         val stringA = "Lol Kek Kotlin berg"
         val sizeA = sizeString(stringA) - 1
         assertEquals(stringA.toByteArray().size, sizeA)
@@ -30,7 +31,7 @@ class PrimitivesTest {
     }
 
     @Test
-    fun `Write Read Long`() {
+    fun writeReadLong() {
         val output = ByteArrayOutput()
         writeLong(output, -1)
         val bytes = output.toByteArray()
@@ -41,7 +42,7 @@ class PrimitivesTest {
 
 
     @Test
-    fun `Read Write Long`() {
+    fun readWriteLong() {
         val bytes = ByteArray(8) {
             if (it < 4) -1 else 0
         }
@@ -61,7 +62,9 @@ class PrimitivesTest {
     class SimplePaket : Paket() {
         override val id: Enum<*> = SomeIDs.Two
 
-        companion object : JvmPaketCreator<SimplePaket>(SimplePaket::class)
+        companion object : PaketCreator<SimplePaket> {
+            override fun produce() = SimplePaket()
+        }
     }
 
     class WithStringPaket(s: String = "") : Paket() {
@@ -69,18 +72,19 @@ class PrimitivesTest {
 
         init { string(s) }
 
-        companion object : JvmPaketCreator<WithStringPaket>(WithStringPaket::class)
+        companion object : PaketCreator<WithStringPaket> {
+            override fun produce() = WithStringPaket()
+        }
     }
 
     @Test
-    fun `Check sizeVarInt`() {
+    fun sizeVarIntCheck() {
         assertEquals(1, sizeVarInt(0))
         assertEquals(1, sizeVarInt(35))
         assertEquals(5, sizeVarInt(-1))
         assertEquals(3, sizeVarInt(56845))
         assertEquals(1, SimplePaket().size)
         assertEquals(12, WithStringPaket("lolkapopka").size)
-
     }
 
     class PathPaket(location: String = "") : Paket() {
@@ -97,15 +101,14 @@ class PrimitivesTest {
     }
 
     @Test
-    fun `Check path`() {
-        runBlocking {
-            val paket = writeReadPaket(PathPaket("/usr/local/share/doc"))
-            paket.recycle()
-            assertEquals(Path.empty, paket.location)
-            writeReadPaket(PathPaket(".local/storage")).recycle()
-            writeReadPaket(PathPaket("")).recycle()
-            writeReadPaket(PathPaket("/")).recycle()
-            writeReadPaket(PathPaket("ktlo")).recycle()
-        }
+    fun checkPath() = testSuspend {
+        val paket = writeReadPaket(PathPaket("/usr/local/share/doc"), PathPaket)
+        paket.recycle()
+        assertEquals(Path.empty, paket.location)
+        writeReadPaket(PathPaket(".local/storage"), PathPaket).recycle()
+        writeReadPaket(PathPaket(""), PathPaket).recycle()
+        writeReadPaket(PathPaket("/"), PathPaket).recycle()
+        writeReadPaket(PathPaket("ktlo"), PathPaket).recycle()
+        paket.recycle()
     }
 }
