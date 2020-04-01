@@ -18,7 +18,8 @@ version = androidGitVersion.name()
 allprojects {
     repositories {
         mavenCentral()
-        maven("http://maven.handtruth.com/")
+        maven("https://mvn.handtruth.com/")
+        maven("https://dl.bintray.com/korlibs/korlibs")
     }
     val platformVersion: String by project
     configurations.all {
@@ -70,6 +71,7 @@ kotlin {
                 implementation(kotlinx("serialization-runtime-common"))
                 compileOnly(mc("nbt-kotlin"))
                 compileOnly("io.ktor:ktor-io")
+                compileOnly("com.soywiz.korlibs.korio:korio")
             }
         }
         val commonTest by getting {
@@ -78,6 +80,7 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
                 implementation(mc("nbt-kotlin"))
                 implementation("io.ktor:ktor-io")
+                implementation("com.soywiz.korlibs.korio:korio")
                 implementation("io.ktor:ktor-test-dispatcher")
             }
         }

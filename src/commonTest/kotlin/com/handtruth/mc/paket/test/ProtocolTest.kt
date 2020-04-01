@@ -66,17 +66,19 @@ class ProtocolTest {
         }
     }
 
-    private val paket get() = ExamplePaket(
-        56845, ExampleEnum.Two, "lolkekdude", true, 68, 65535u.toShort(),
-        Random.nextLong(), Random.nextLong(), "/usr/local/share/doc",
-        listOf(64, -668, 894615, 6, -65321, -1),
-        listOf(ExampleEnum.Three, ExampleEnum.One, ExampleEnum.Zero, ExampleEnum.Two),
-        listOf("lol", "kek", "dude", "popka".repeat(450), "/usr/local/share/doc", ".local/storage", "", "/"),
-        listOf(true, false, true), listOf(89, -128, 127, 8),
-        listOf(Short.MAX_VALUE, 48453.toShort(), 0), listOf(895, Random.nextLong(), -852),
-        listOf(0, Short.MAX_VALUE.toLong() + 1L, 8373, 0x223L, Random.nextLong(), -543),
-        listOf("/usr/local/share/doc", ".local/storage", "", "/", "ktlo")
-    )
+    companion object {
+        val paket get() = ExamplePaket(
+                56845, ExampleEnum.Two, "lolkekdude", true, 68, 65535u.toShort(),
+                Random.nextLong(), Random.nextLong(), "/usr/local/share/doc",
+                listOf(64, -668, 894615, 6, -65321, -1),
+                listOf(ExampleEnum.Three, ExampleEnum.One, ExampleEnum.Zero, ExampleEnum.Two),
+                listOf("lol", "kek", "dude", "popka".repeat(450), "/usr/local/share/doc", ".local/storage", "", "/"),
+                listOf(true, false, true), listOf(89, -128, 127, 8),
+                listOf(Short.MAX_VALUE, 48453.toShort(), 0), listOf(895, Random.nextLong(), -852),
+                listOf(0, Short.MAX_VALUE.toLong() + 1L, 8373, 0x223L, Random.nextLong(), -543),
+                listOf("/usr/local/share/doc", ".local/storage", "", "/", "ktlo")
+            )
+    }
 
     class StringPaket(string: String = "") : Paket() {
         override val id = ExampleID.First
