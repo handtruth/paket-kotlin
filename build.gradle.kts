@@ -31,6 +31,9 @@ allprojects {
 
 kotlin {
     jvm()
+    val useJS: String by project
+    val useJSBool = useJS == "true"
+    if (useJSBool)
     js {
         browser {
             testTask {
@@ -94,19 +97,21 @@ kotlin {
                 implementation("io.ktor:ktor-test-dispatcher-jvm")
             }
         }
-        val jsMain by getting {
-            dependencies {
-                implementation(kotlin("stdlib-js"))
-                implementation(kotlinx("coroutines-core-js"))
-                implementation(kotlinx("serialization-runtime-js"))
-                compileOnly("io.ktor:ktor-io-js")
+        if(useJSBool) {
+            val jsMain by getting {
+                dependencies {
+                    implementation(kotlin("stdlib-js"))
+                    implementation(kotlinx("coroutines-core-js"))
+                    implementation(kotlinx("serialization-runtime-js"))
+                    compileOnly("io.ktor:ktor-io-js")
+                }
             }
-        }
-        val jsTest by getting {
-            dependencies {
-                implementation(kotlin("test-js"))
-                implementation("io.ktor:ktor-io-js")
-                implementation("io.ktor:ktor-test-dispatcher-js")
+            val jsTest by getting {
+                dependencies {
+                    implementation(kotlin("test-js"))
+                    implementation("io.ktor:ktor-io-js")
+                    implementation("io.ktor:ktor-test-dispatcher-js")
+                }
             }
         }
     }
