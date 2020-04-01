@@ -15,13 +15,14 @@ androidGitVersion {
 group = "com.handtruth.mc"
 version = androidGitVersion.name()
 
+val platformVersion: String by project
+
 allprojects {
     repositories {
         mavenCentral()
         maven("https://mvn.handtruth.com/")
         maven("https://dl.bintray.com/korlibs/korlibs")
     }
-    val platformVersion: String by project
     configurations.all {
         resolutionStrategy.eachDependency {
             if (requested.group == "com.handtruth.internal" && requested.name == "platform")
@@ -58,7 +59,7 @@ kotlin {
                 useExperimentalAnnotation("com.handtruth.mc.paket.ExperimentalPaketApi")
             }
             dependencies {
-                val platform = dependencies.platform("com.handtruth.internal:platform")
+                val platform = dependencies.platform("com.handtruth.internal:platform:$platformVersion")
                 implementation(platform)
                 compileOnly(platform)
             }
