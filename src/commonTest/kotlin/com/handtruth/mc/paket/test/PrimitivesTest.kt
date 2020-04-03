@@ -59,12 +59,8 @@ class PrimitivesTest {
         Zero, One, Two, Three
     }
 
-    class SimplePaket : Paket() {
+    object SimplePaket : SinglePaket<SimplePaket>() {
         override val id: Enum<*> = SomeIDs.Two
-
-        companion object : PaketCreator<SimplePaket> {
-            override fun produce() = SimplePaket()
-        }
     }
 
     class WithStringPaket(s: String = "") : Paket() {
@@ -83,7 +79,7 @@ class PrimitivesTest {
         assertEquals(1, sizeVarInt(35))
         assertEquals(5, sizeVarInt(-1))
         assertEquals(3, sizeVarInt(56845))
-        assertEquals(1, SimplePaket().size)
+        assertEquals(1, SimplePaket.size)
         assertEquals(12, WithStringPaket("lolkapopka").size)
     }
 

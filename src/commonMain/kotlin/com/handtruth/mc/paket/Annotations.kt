@@ -22,7 +22,7 @@ import kotlin.reflect.KClass
 annotation class ExperimentalPaketApi
 
 enum class PaketSources {
-    Creator, Pool
+    Creator, Pool, Singleton
 }
 
 @ExperimentalPaketApi

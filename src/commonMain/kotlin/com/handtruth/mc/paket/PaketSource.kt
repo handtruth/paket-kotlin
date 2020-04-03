@@ -14,6 +14,8 @@ interface PaketPool<P: Paket> : PaketSource<P> {
     fun recycle(paket: P)
 }
 
+interface PaketSingleton<P: Paket> : PaketSource<P>
+
 inline fun <P: Paket, R> PaketPool<P>.take(block: (P) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -41,4 +43,9 @@ abstract class AbstractPaketPool<P: Paket>(capacity: Int = 25) : PaketPool<P> {
     final override fun recycle(paket: P) {
         pool.recycle(paket)
     }
+}
+
+abstract class SinglePaket<P: SinglePaket<P>> : Paket(), PaketSingleton<P> {
+    @Suppress("UNCHECKED_CAST")
+    override fun produce() = this as P
 }
