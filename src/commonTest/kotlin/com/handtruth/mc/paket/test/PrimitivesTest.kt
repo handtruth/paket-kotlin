@@ -6,10 +6,20 @@ import com.handtruth.mc.paket.fields.string
 import com.handtruth.mc.paket.util.Path
 import io.ktor.test.dispatcher.testSuspend
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.io.ByteArrayInput
-import kotlinx.io.ByteArrayOutput
+import kotlinx.io.*
+import kotlinx.io.buffer.Buffer
+import kotlinx.io.text.writeUtf8String
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.measureTime
+
+fun otherWriteString(output: Output, value: String) {
+    val bytes = buildBytes {
+        writeUtf8String(value)
+    }
+    writeVarInt(output, bytes.size())
+    bytes.input().copyTo(output)
+}
 
 class PrimitivesTest {
 
@@ -28,6 +38,27 @@ class PrimitivesTest {
         val outputB = ByteArrayOutput()
         writeString(outputB, stringB)
         assertEquals(sizeB, outputB.toByteArray().size - 1)
+    }
+
+    object EmptyOutput : Output() {
+        override fun closeSource() = Unit
+        override fun flush(source: Buffer, startIndex: Int, endIndex: Int) = Unit
+    }
+
+    //@Test
+    fun testStringWriterSpeed() {
+        val string = "Русская строка со словом ЖОПА"
+        val t1 = measureTime {
+            repeat(10000) {
+                writeString(EmptyOutput, string)
+            }
+        }
+        val t2 = measureTime {
+            repeat(10000) {
+                otherWriteString(EmptyOutput, string)
+            }
+        }
+        println("t1 = $t1, t2 = $t2")
     }
 
     @Test

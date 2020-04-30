@@ -19,7 +19,7 @@ val platformVersion: String by project
 
 allprojects {
     repositories {
-        mavenCentral()
+        jcenter()
         maven("https://mvn.handtruth.com/")
         maven("https://dl.bintray.com/korlibs/korlibs")
     }
@@ -57,6 +57,7 @@ kotlin {
                 useExperimentalAnnotation("kotlin.contracts.ExperimentalContracts")
                 useExperimentalAnnotation("kotlinx.serialization.ImplicitReflectionSerializer")
                 useExperimentalAnnotation("com.handtruth.mc.paket.ExperimentalPaketApi")
+                useExperimentalAnnotation("kotlin.time.ExperimentalTime")
             }
             dependencies {
                 val platform = dependencies.platform("com.handtruth.internal:platform:$platformVersion")

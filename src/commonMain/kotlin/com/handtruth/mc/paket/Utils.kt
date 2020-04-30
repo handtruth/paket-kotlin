@@ -112,17 +112,13 @@ internal fun sizeString(sequence: CharSequence) = sizeStringChars(sequence).let 
 
 internal fun readString(input: Input): String {
     val size = readVarInt(input)
-    val array = ByteArray(size)
-    for (i in array.indices)
-        array[i] = input.readByte()
-    val inner = ByteArrayInput(array)
-    return inner.readUtf8String(size)
+    val bytes = buildBytes {
+        input.copyTo(this, size)
+    }
+    return bytes.input().readUtf8String()
 }
 
 internal fun writeString(output: Output, value: String) {
-    //val bytes = value.toByteArray()
-    //writeVarInt(output, bytes.size)
-    //bytes.forEach { output.writeByte(it) }
     writeVarInt(output, sizeStringChars(value))
     output.writeUtf8String(value)
 }
