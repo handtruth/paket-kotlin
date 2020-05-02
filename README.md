@@ -3,7 +3,7 @@ Paket Kotlin Library
 
 This library defines base for communication protocol. Right now
 [mctools] uses it in Minecraft protocol implementation. Currently
-compression is not supported.
+compression is not supported. See also [C++] version.
 
 Usage
 ------------------------
@@ -86,3 +86,5 @@ Known Issues
 [ktor]: https://ktor.io
 [korio]: https://korlibs.soywiz.com/korio/
 [kotlinx.io]: https://github.com/Kotlin/kotlinx-io
+[mctools]: https://github.com/handtruth/mctools
+[C++]: https://github.com/handtruth/paket-cpp
