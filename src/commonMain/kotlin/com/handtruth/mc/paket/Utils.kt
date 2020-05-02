@@ -113,7 +113,10 @@ internal fun sizeString(sequence: CharSequence) = sizeStringChars(sequence).let 
 internal fun readString(input: Input): String {
     val size = readVarInt(input)
     val bytes = buildBytes {
-        input.copyTo(this, size)
+        repeat(size) {
+            // TODO: Improve when fixed
+            writeByte(input.readByte())
+        }
     }
     return bytes.input().readUtf8String()
 }
