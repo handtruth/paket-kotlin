@@ -27,3 +27,6 @@ private class CombinedPaketTransmitter(private val receiver: PaketReceiver, priv
 fun PaketTransmitter.asSynchronized() = PaketTransmitter(
     (this as PaketReceiver).asSynchronized(), (this as PaketSender).asSynchronized()
 )
+
+suspend inline fun <reified E: Enum<E>> PaketTransmitter.catchAs() = enumValues<E>()[catchOrdinal()]
+inline fun <reified E: Enum<E>> PaketTransmitter.idAs() = enumValues<E>()[idOrdinal]

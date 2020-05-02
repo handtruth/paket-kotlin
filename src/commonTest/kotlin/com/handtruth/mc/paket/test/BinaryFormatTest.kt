@@ -1,10 +1,9 @@
 package com.handtruth.mc.paket.test
 
-import com.handtruth.mc.nbt.NBT
 import com.handtruth.mc.paket.Paket
 import com.handtruth.mc.paket.PaketCreator
-import com.handtruth.mc.paket.fields.binary
 import com.handtruth.mc.paket.fields.json
+import com.handtruth.mc.paket.fields.nbt
 import com.handtruth.mc.paket.fields.serial
 import io.ktor.test.dispatcher.testSuspend
 import kotlinx.serialization.Serializable
@@ -12,10 +11,6 @@ import kotlin.random.Random
 import kotlin.test.Test
 
 class NBTFormatTest {
-    companion object {
-        // Example implementation for NBT field
-        inline fun <reified T : Any> Paket.nbt(initial: T) = binary(NBT, initial)
-    }
 
     @Serializable
     data class Attribute(
