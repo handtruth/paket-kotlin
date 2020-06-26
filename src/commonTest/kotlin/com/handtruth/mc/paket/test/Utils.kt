@@ -4,16 +4,15 @@ import com.handtruth.mc.paket.*
 import kotlinx.io.ByteArrayInput
 import kotlinx.io.ByteArrayOutput
 import kotlinx.io.use
-import kotlin.coroutines.coroutineContext
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-internal suspend inline fun <reified P: Paket> writeReadPaket(paketA: P, source: PaketSource<P>): P {
+internal suspend fun <P : Paket> writeReadPaket(paketA: P, source: PaketSource<P>): P {
     // write
     val output = ByteArrayOutput()
-    val sender = PaketSender(output, coroutineContext)
+    val sender = PaketSender(output)
     assertFalse(sender.broken, "Sender was broken after creation")
     val bytes = sender.use {
         it.send(paketA)
@@ -30,7 +29,7 @@ internal suspend inline fun <reified P: Paket> writeReadPaket(paketA: P, source:
     }
     // read
     val input = ByteArrayInput(bytes)
-    val receiver = PaketReceiver(input, coroutineContext)
+    val receiver = PaketReceiver(input)
     assertFalse(receiver.broken, "Receiver was broken after creation")
     assertFalse(receiver.isCaught, "Paket receiver should be empty at the beginning")
     assertEquals(paketA.id.ordinal, receiver.catchOrdinal(), "Receiver got wrong paket id")

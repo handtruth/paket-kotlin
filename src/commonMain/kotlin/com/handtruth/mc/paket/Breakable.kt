@@ -15,7 +15,7 @@ abstract class AbstractBreakable : Breakable {
 
     protected inline fun <R> breakableAction(lambda: () -> R): R {
         if (broken)
-            throw BrokenObjectException("Connection already broken, consider reconnect")
+            throw BrokenObjectException("connection already broken, consider reconnect")
         try {
             return lambda()
         } catch (thr: Throwable) {

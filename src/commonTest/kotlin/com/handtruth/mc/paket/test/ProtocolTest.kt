@@ -22,25 +22,26 @@ class ProtocolTest {
     }
 
     @Suppress("unused")
-    class ExamplePaket(pVarInt: Int = 0,
-                       pEnum: ExampleEnum = ExampleEnum.Zero,
-                       pString: String = "",
-                       pBool: Boolean = false,
-                       pInt8: Byte = 0,
-                       pInt16: Short = 0,
-                       pInt64: Long = 0,
-                       pVarLong: Long = 0,
-                       pPath: String = "",
-                       pListVarInt: List<Int> = emptyList(),
-                       pListEnum: List<ExampleEnum> = emptyList(),
-                       pListString: List<String> = emptyList(),
-                       pListBool: List<Boolean> = emptyList(),
-                       pListUInt8: List<Byte> = emptyList(),
-                       pListInt16: List<Short> = emptyList(),
-                       pListInt64: List<Long> = emptyList(),
-                       pListVarLong: List<Long> = emptyList(),
-                       pListPath: List<String> = emptyList()
-                       ) : Paket() {
+    class ExamplePaket(
+        pVarInt: Int = 0,
+        pEnum: ExampleEnum = ExampleEnum.Zero,
+        pString: String = "",
+        pBool: Boolean = false,
+        pInt8: Byte = 0,
+        pInt16: Short = 0,
+        pInt64: Long = 0,
+        pVarLong: Long = 0,
+        pPath: String = "",
+        pListVarInt: List<Int> = emptyList(),
+        pListEnum: List<ExampleEnum> = emptyList(),
+        pListString: List<String> = emptyList(),
+        pListBool: List<Boolean> = emptyList(),
+        pListUInt8: List<Byte> = emptyList(),
+        pListInt16: List<Short> = emptyList(),
+        pListInt64: List<Long> = emptyList(),
+        pListVarLong: List<Long> = emptyList(),
+        pListPath: List<String> = emptyList()
+    ) : Paket() {
         override val id = ExampleID.Second
         var pVarInt by varInt(pVarInt)
         var pEnum by enum(pEnum)
@@ -67,7 +68,8 @@ class ProtocolTest {
     }
 
     companion object {
-        val paket get() = ExamplePaket(
+        val paket
+            get() = ExamplePaket(
                 56845, ExampleEnum.Two, "lolkekdude", true, 68, 65535u.toShort(),
                 Random.nextLong(), Random.nextLong(), "/usr/local/share/doc",
                 listOf(64, -668, 894615, 6, -65321, -1),

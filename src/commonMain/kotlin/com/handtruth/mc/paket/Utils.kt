@@ -211,6 +211,21 @@ internal fun readDouble(input: Input) = input.readDouble()
 
 internal fun writeDouble(output: Output, value: Double) = output.writeDouble(value)
 
+internal fun sizeBytes(bytes: Bytes) = bytes.size().let { it + sizeVarInt(it) }
+
+internal fun readBytes(input: Input) = buildBytes {
+    val size = readVarInt(input)
+    // TODO: Optimize when fixed
+    repeat(size) {
+        writeByte(input.readByte())
+    }
+}
+
+internal fun writeBytes(output: Output, bytes: Bytes) {
+    writeVarInt(output, bytes.size())
+    bytes.input().copyTo(output)
+}
+
 internal fun forbidNulls(): Nothing = throw SerializationException("null values a prohibited")
 
 internal fun <T> codecOf(descriptor: SerialDescriptor, index: Int) =

@@ -2,17 +2,10 @@
 
 package com.handtruth.mc.paket
 
-import kotlinx.io.Input
-import kotlinx.io.Output
-import kotlin.coroutines.CoroutineContext
-
 interface PaketTransmitter : PaketSender, PaketReceiver
 
 fun PaketTransmitter(receiver: PaketReceiver, sender: PaketSender): PaketTransmitter
     = CombinedPaketTransmitter(receiver, sender)
-
-fun PaketTransmitter(input: Input, output: Output, ioContext: CoroutineContext) =
-    PaketTransmitter(PaketReceiver(input, ioContext), PaketSender(output, ioContext))
 
 private class CombinedPaketTransmitter(private val receiver: PaketReceiver, private val sender: PaketSender) :
         PaketTransmitter, PaketReceiver by receiver, PaketSender by sender {

@@ -1,6 +1,8 @@
 package com.handtruth.mc.paket.test
 
 import com.handtruth.mc.paket.*
+import com.handtruth.mc.paket.fields.BytesCodec
+import com.handtruth.mc.paket.fields.bytes
 import com.handtruth.mc.paket.fields.path
 import com.handtruth.mc.paket.fields.string
 import com.handtruth.mc.paket.util.Path
@@ -97,7 +99,9 @@ class PrimitivesTest {
     class WithStringPaket(s: String = "") : Paket() {
         override val id = SomeIDs.Three
 
-        init { string(s) }
+        init {
+            string(s)
+        }
 
         companion object : PaketCreator<WithStringPaket> {
             override fun produce() = WithStringPaket()
@@ -125,6 +129,42 @@ class PrimitivesTest {
         companion object : AbstractPaketPool<PathPaket>() {
             override fun create() = PathPaket()
         }
+    }
+
+    @Test
+    fun bytesCodec() {
+        val bytes = buildBytes {
+            writeUtf8String("ВОЗМОЖНОСТЬ".repeat(100))
+        }
+        val size = BytesCodec.measure(bytes)
+        val other = buildBytes {
+            BytesCodec.write(this, bytes)
+        }
+        assertEquals(other.size(), size)
+    }
+
+    class BytesPaket(data: Bytes = buildBytes { }) : Paket() {
+        override val id = SomeIDs.Two
+
+        val data by bytes(data)
+
+        companion object : PaketCreator<BytesPaket> {
+            override fun produce() = BytesPaket()
+        }
+    }
+
+    @Test
+    fun bytesPaketTest() = testSuspend {
+        val paket = BytesPaket(buildBytes { repeat(100) { writeUtf8String("ТЕЧЕНИЕ") } })
+        assertEquals(1403, paket.size)
+        val output = ByteArrayOutput()
+        PaketSender(output).use { it.send(paket) }
+        val array = output.toByteArray()
+        val input = ByteArrayInput(array)
+        val (paketB, paketC) = PaketReceiver(input).use {
+            it.peek(BytesPaket) to it.receive(BytesPaket)
+        }
+        assertEquals(paketB.data.size(), paketC.data.size())
     }
 
     @Test
