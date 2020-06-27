@@ -4,9 +4,7 @@ package com.handtruth.mc.paket
 
 import com.handtruth.mc.paket.fields.VarIntCodec
 import com.soywiz.korio.stream.*
-import kotlinx.io.ByteArrayInput
-import kotlinx.io.ByteArrayOutput
-import kotlinx.io.buildBytes
+import kotlinx.io.*
 import kotlin.math.min
 
 private class KorioPaketSender(private val stream: AsyncOutputStream) : AbstractPaketSender() {
@@ -48,14 +46,35 @@ private class KorioPaketReceiver(private val stream: AsyncInputStream) : Abstrac
             pendingOffset = VarIntCodec.measure(id)
             isCaught = true
             idOrdinal = id
+            // Fetch paket body
+            val alreadyRead = min(5, size)
+            val packet = stream.readBytesExact(size - alreadyRead)
+            val bytes = buildBytes {
+                // TODO: Improve when fixed
+                for (i in 0 until alreadyRead)
+                    writeByte(pending[i])
+                packet.forEach { writeByte(it) }
+            }
+            buffer = BytesInfo(bytes)
+
             id
         }
     }
 
+    private class BytesInfo(val bytes: Bytes) : Closeable {
+        val input = bytes.input()
+
+        override fun close() {
+            input.close()
+            bytes.close()
+        }
+    }
+
+    private var buffer: BytesInfo? = null
+
     override suspend fun drop(): Unit = breakableAction {
         if (isCaught) {
-            val size = size
-            stream.skip(size - min(size, 5))
+            buffer!!.close()
             isCaught = false
         } else {
             catchOrdinal()
@@ -66,24 +85,16 @@ private class KorioPaketReceiver(private val stream: AsyncInputStream) : Abstrac
     override suspend fun receive(paket: Paket) = breakableAction {
         if (!isCaught)
             catchOrdinal()
-        val id = idOrdinal
-        if (id != paket.id.ordinal)
-            throw IllegalProtocolStateException("Paket IDs differ (${paket.id.ordinal} expected, got $id)")
-        val alreadyRead = min(5, size)
-        val packet = stream.readBytesExact(size - alreadyRead)
-        val bytes = buildBytes {
-            // TODO: Improve when fixed
-            for (i in 0 until alreadyRead)
-                writeByte(pending[i])
-            packet.forEach { writeByte(it) }
-        }
-        paket.read(bytes.input())
-        bytes.close()
-        isCaught = false
+        paket.read(buffer!!.input)
+        drop()
     }
 
     override suspend fun peek(paket: Paket) {
-        TODO("Not yet implemented")
+        if (!isCaught)
+            catchOrdinal()
+        buffer!!.input.preview {
+            paket.read(this)
+        }
     }
 }
 

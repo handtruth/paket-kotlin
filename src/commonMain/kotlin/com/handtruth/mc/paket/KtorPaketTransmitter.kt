@@ -4,9 +4,7 @@ package com.handtruth.mc.paket
 
 import com.handtruth.mc.paket.fields.VarIntCodec
 import io.ktor.utils.io.*
-import kotlinx.io.ByteArrayInput
-import kotlinx.io.ByteArrayOutput
-import kotlinx.io.buildBytes
+import kotlinx.io.*
 import kotlin.math.min
 
 private class KtorPaketSender(private val channel: ByteWriteChannel) : AbstractPaketSender() {
@@ -55,14 +53,26 @@ private class KtorPaketReceiver(private val channel: ByteReadChannel) : Abstract
             pendingOffset = VarIntCodec.measure(id)
             isCaught = true
             idOrdinal = id
+            // Fetch body
+            val alreadyRead = min(5, size)
+            val packet = channel.readPacket(size - alreadyRead)
+            val bytes = buildBytes {
+                // TODO: Improve when fixed
+                for (i in 0 until alreadyRead)
+                    writeByte(pending[i])
+                while (packet.canRead())
+                    writeByte(packet.readByte())
+            }
+            buffer = BytesInfo(bytes)
+
             id
         }
     }
 
     override suspend fun drop(): Unit = breakableAction {
         if (isCaught) {
-            val size = size
-            channel.discardExact(size.toLong() - min(size, 5))
+            buffer!!.close()
+            buffer = null
             isCaught = false
         } else {
             catchOrdinal()
@@ -70,28 +80,30 @@ private class KtorPaketReceiver(private val channel: ByteReadChannel) : Abstract
         }
     }
 
+    private class BytesInfo(val bytes: Bytes) : Closeable {
+        val input = bytes.input()
+
+        override fun close() {
+            input.close()
+            bytes.close()
+        }
+    }
+
+    private var buffer: BytesInfo? = null
+
     override suspend fun receive(paket: Paket) = breakableAction {
         if (!isCaught)
             catchOrdinal()
-        val id = idOrdinal
-        if (id != paket.id.ordinal)
-            throw IllegalProtocolStateException("Paket IDs differ (${paket.id.ordinal} expected, got $id)")
-        val alreadyRead = min(5, size)
-        val packet = channel.readPacket(size - alreadyRead)
-        val bytes = buildBytes {
-            // TODO: Improve when fixed
-            for (i in 0 until alreadyRead)
-                writeByte(pending[i])
-            while (packet.canRead())
-                writeByte(packet.readByte())
-        }
-        paket.read(bytes.input())
-        bytes.close()
-        isCaught = false
+        paket.read(buffer!!.input)
+        drop()
     }
 
-    override suspend fun peek(paket: Paket) {
-        TODO("Not yet implemented")
+    override suspend fun peek(paket: Paket) = breakableAction {
+        if (!isCaught)
+            catchOrdinal()
+        buffer!!.input.preview {
+            paket.read(this)
+        }
     }
 }
 
