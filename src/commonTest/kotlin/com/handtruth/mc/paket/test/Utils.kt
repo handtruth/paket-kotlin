@@ -1,6 +1,10 @@
 package com.handtruth.mc.paket.test
 
 import com.handtruth.mc.paket.*
+import io.ktor.test.dispatcher.testSuspend
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import kotlinx.io.ByteArrayInput
 import kotlinx.io.ByteArrayOutput
 import kotlinx.io.use
@@ -8,6 +12,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration
 
 internal suspend fun <P : Paket> writeReadPaket(paketA: P, source: PaketSource<P>): P {
     // write
@@ -50,4 +55,12 @@ internal suspend fun <P : Paket> writeReadPaket(paketA: P, source: PaketSource<P
     assertEquals(paketA.toString(), paketB.toString())
     assertEquals(paketA.hashCode(), paketB.hashCode())
     return paketB
+}
+
+fun testTimeout(duration: Duration, block: suspend CoroutineScope.() -> Unit) = testSuspend {
+    try {
+        withTimeout(duration, block)
+    } catch (e: TimeoutCancellationException) {
+        throw IllegalStateException("timeout", e)
+    }
 }

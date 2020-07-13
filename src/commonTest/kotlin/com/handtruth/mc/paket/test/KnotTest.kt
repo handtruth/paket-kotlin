@@ -3,7 +3,6 @@ package com.handtruth.mc.paket.test
 import com.handtruth.mc.paket.InternalPaketApi
 import com.handtruth.mc.paket.util.Knot
 import com.handtruth.mc.paket.util.weave
-import io.ktor.test.dispatcher.testSuspend
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -14,6 +13,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.seconds
 
 @OptIn(InternalPaketApi::class)
 class KnotTest {
@@ -58,7 +58,7 @@ class KnotTest {
     }
 
     @Test
-    fun knotTest() = testSuspend {
+    fun knotTest() = testTimeout(5.seconds) {
         val knot = Subject()
 
         val fc = 1000
@@ -98,7 +98,7 @@ class KnotTest {
         coroutineScope {
             repeat(10) {
                 coroutineScope {
-                    remains.forEachIndexed { i, it ->
+                    remains.forEach {
                         launch(dispatcher) {
                             it.weave {
                                 yield()
