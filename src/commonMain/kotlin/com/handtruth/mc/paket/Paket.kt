@@ -70,7 +70,16 @@ abstract class Paket {
         pool?.recycle(this)
     }
 
+    class Empty<E : Enum<E>>(override val id: E) : Paket() {
+        companion object {
+            inline operator fun <reified E : Enum<E>> invoke(): Empty<E> {
+                return Empty(enumValues<E>()[0])
+            }
+        }
+    }
+
     companion object : BinaryFormat {
+
         override val context = EmptyModule
 
         override fun <T> dump(serializer: SerializationStrategy<T>, value: T): ByteArray {

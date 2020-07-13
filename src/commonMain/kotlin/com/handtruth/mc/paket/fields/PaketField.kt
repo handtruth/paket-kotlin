@@ -17,8 +17,9 @@ class PaketField<P: Paket>(initial: P, source: PaketSource<P>) : Field<P>(PaketC
 class PaketListField<P: Paket>(initial: MutableList<P>, source: PaketSource<P>) :
     ListField<P>(PaketListCodec(source), initial)
 
-fun <P: Paket> Paket.paket(source: PaketSource<P>, initial: P = source.produce()) = field(PaketField(initial, source))
-fun <P: Paket> Paket.listOfPaket(source: PaketSource<P>, initial: MutableList<P>) =
+fun <P : Paket> Paket.paket(source: PaketSource<P>, initial: P = source.produce()) = field(PaketField(initial, source))
+fun <P : Paket> Paket.paket(initial: P) = field(PaketField(initial, emptyPaketSource()))
+fun <P : Paket> Paket.listOfPaket(source: PaketSource<P>, initial: MutableList<P>) =
     field(PaketListField(initial, source))
 @JvmName("listOfPaketRO")
 fun <P: Paket> Paket.listOfPaket(source: PaketSource<P>, initial: List<P>) =

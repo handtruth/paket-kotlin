@@ -28,7 +28,7 @@ private class BytesPaketSender(private val output: SendChannel<Bytes>) : PaketSe
     }
 }
 
-private class BytesPaketReceiver(private val input: ReceiveChannel<Bytes>) : PaketReceiver {
+private class BytesPaketReceiver(private val input: ReceiveChannel<Bytes>) : AbstractPaketReceiver() {
 
     private class BytesInfo(bytes: Bytes) {
         val input = bytes.input()
@@ -37,45 +37,46 @@ private class BytesPaketReceiver(private val input: ReceiveChannel<Bytes>) : Pak
 
     private var pending: BytesInfo? = null
 
-    override var idOrdinal = -1
-        private set
-    override val size get() = pending?.size ?: -1
-    override val isCaught get() = pending != null
-
-    override suspend fun catchOrdinal(): Int {
+    override suspend fun catchOrdinal(): Int = breakableAction {
         val buffer = BytesInfo(input.receive())
         pending = buffer
         buffer.input.preview {
             idOrdinal = readVarInt(this)
         }
+        size = buffer.size
+        isCaught = true
         return idOrdinal
     }
 
-    override suspend fun drop() {
-        if (!isCaught)
-            catchOrdinal()
+    private fun clear() {
         pending = null
+        isCaught = false
+        size = -1
+        idOrdinal = -1
     }
 
-    override suspend fun receive(paket: Paket) {
+    override suspend fun drop() = breakableAction {
+        if (!isCaught)
+            catchOrdinal()
+        clear()
+    }
+
+    override suspend fun receive(paket: Paket) = breakableAction {
         if (!isCaught)
             catchOrdinal()
         pending!!.input.use { paket.read(it) }
-        pending = null
+        clear()
     }
 
-    override suspend fun peek(paket: Paket) {
+    override suspend fun peek(paket: Paket) = breakableAction {
         if (!isCaught)
             catchOrdinal()
         pending!!.input.preview { paket.read(this) }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val broken
-        get() = input.isClosedForReceive
-
     override fun close() {
         input.cancel()
+        super.close()
     }
 
 }

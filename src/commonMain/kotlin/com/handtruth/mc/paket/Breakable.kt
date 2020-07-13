@@ -2,8 +2,12 @@ package com.handtruth.mc.paket
 
 import kotlinx.io.Closeable
 
-class BrokenObjectException(message: String = "Forbidden operation on already broken object") :
-    RuntimeException(message)
+class BrokenObjectException : RuntimeException {
+    constructor() : super("broken object")
+    constructor(message: String) : super(message)
+    constructor(message: String, cause: Throwable) : super(message, cause)
+    constructor(cause: Throwable) : super("broken object", cause)
+}
 
 interface Breakable : Closeable {
     val broken: Boolean
@@ -15,12 +19,12 @@ abstract class AbstractBreakable : Breakable {
 
     protected inline fun <R> breakableAction(lambda: () -> R): R {
         if (broken)
-            throw BrokenObjectException("connection already broken, consider reconnect")
+            throw BrokenObjectException("object broken, consider recreate")
         try {
             return lambda()
-        } catch (thr: Throwable) {
+        } catch (e: Exception) {
             broken = true
-            throw thr
+            throw e
         }
     }
 

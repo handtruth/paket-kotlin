@@ -36,3 +36,13 @@ private class SynchronizedPaketSender(private val sender: PaketSender) : PaketSe
 
     override fun close() = sender.close()
 }
+
+object EmptyPaketSender : PaketSender {
+    override suspend fun send(paket: Paket) {}
+    override val broken get() = false
+    override fun close() {}
+}
+
+fun PaketSender.asNotCloseable(): PaketSender = object : PaketSender by this {
+    override fun close() {}
+}
