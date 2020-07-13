@@ -8,14 +8,18 @@ import kotlinx.io.Closeable
 /**
  * Actually, I can't imagine any situation where this may be useful.
  */
+@ExperimentalPaketApi
 interface PaketBroadcast : Closeable {
     fun openSubscription(): PaketReceiver
 }
 
+@ExperimentalPaketApi
 interface PaketBroadcastSender : PaketSender, PaketBroadcast
 
+@ExperimentalPaketApi
 fun PaketReceiver.broadcast(): PaketBroadcast = PaketBroadcastImpl(this)
 
+@ExperimentalPaketApi
 fun PaketTransmitter.broadcast(): PaketBroadcastSender = PaketBroadcastSenderImpl(this, this)
 
 private class PaketBroadcastSenderImpl private constructor(
@@ -26,7 +30,6 @@ private class PaketBroadcastSenderImpl private constructor(
     constructor(sender: PaketSender, receiver: PaketReceiver) : this(sender.asSynchronized(), receiver.broadcast())
 
     override fun close() {
-        sender.close()
         receiver.close()
     }
 }

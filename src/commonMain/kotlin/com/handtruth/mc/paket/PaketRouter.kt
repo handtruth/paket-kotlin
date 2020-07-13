@@ -66,7 +66,7 @@ internal abstract class PaketRouter(private val count: Int, private val receiver
 
     private var code = -1
 
-    private suspend fun catchNext(): Int = mutex.withLock {
+    private suspend fun catchNext(): Int {
         receiver.isCaught && return code
         while (true) {
             receiver.catchOrdinal()
@@ -100,16 +100,22 @@ internal abstract class PaketRouter(private val count: Int, private val receiver
                 drop()
                 catchOrdinal()
             } else {
-                val channel = conductor.openSubscription()
-                subscribers.incrementAndGet()
+                val channel = mutex.withLock {
+                    subscribers.incrementAndGet()
+                    conductor.openSubscription()
+                }
                 try {
-                    catchNext()
+                    mutex.withLock {
+                        catchNext()
+                    }
                     do {
                         val repeat = invokeOnReceive(channel.receive())
                     } while (repeat)
                 } finally {
-                    subscribers.decrementAndGet()
-                    channel.cancel()
+                    mutex.withLock {
+                        subscribers.decrementAndGet()
+                        channel.cancel()
+                    }
                 }
                 idOrdinal
             }
@@ -129,8 +135,10 @@ internal abstract class PaketRouter(private val count: Int, private val receiver
             } else {
                 clear()
                 receiver.drop()
-                if (subscribers.value != 0)
-                    catchNext()
+                mutex.withLock {
+                    if (subscribers.value != 0)
+                        catchNext()
+                }
             }
         }
 
@@ -139,8 +147,10 @@ internal abstract class PaketRouter(private val count: Int, private val receiver
                 catchOrdinal()
             receiver.receive(paket)
             clear()
-            if (subscribers.value != 0)
-                catchNext()
+            mutex.withLock {
+                if (subscribers.value != 0)
+                    catchNext()
+            }
         }
 
         override suspend fun peek(paket: Paket) = breakableAction {

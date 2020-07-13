@@ -2,14 +2,15 @@ package com.handtruth.mc.paket.test
 
 import com.handtruth.mc.paket.*
 import com.soywiz.korio.lang.printStackTrace
-import io.ktor.test.dispatcher.testSuspend
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.io.Bytes
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
+import kotlin.time.seconds
 
 class RoutersTest {
 
@@ -32,7 +33,7 @@ class RoutersTest {
     private val PaketPeeking.id get() = enumValues<IDS>()[idOrdinal]
 
     @Test
-    fun routerTest() = testSuspend {
+    fun routerTest() = testTimeout(5.seconds) {
         val channel = Channel<Bytes>()
         val master = PaketTransmitter(channel)
         val (slave1, slave2) = master filter { it.id != IDS.Third } split { it.id }
@@ -64,7 +65,7 @@ class RoutersTest {
     }
 
     @Test
-    fun stressRouterTest() = testSuspend {
+    fun stressRouterTest() = testTimeout(5.seconds) {
         val channel = Channel<Bytes>()
         val master = PaketTransmitter(channel)
         val (slave1, slave2, slave3) = master filter { it.id != IDS.Third } split { it.id }
@@ -111,7 +112,7 @@ class RoutersTest {
     }
 
     @Test
-    fun filterTest() = testSuspend {
+    fun filterTest() = testTimeout(5.seconds) {
         val main = PaketTransmitter(Channel<Bytes>()).asSynchronized() filter { it.id == IDS.Second }
         val dispatcher = Dispatchers.Default
         val count = 10000
@@ -150,14 +151,14 @@ class RoutersTest {
     }
 
     @Test
-    fun broadcastTest() = testSuspend {
+    fun broadcastTest() = testTimeout(5.seconds) {
         val main = PaketTransmitter(Channel<Bytes>())
         val master = main.broadcast()
         val sender = master.asNotCloseable()
         val ts1 = sender + master.openSubscription() filter { it.id == IDS.First }
         val ts2 = sender + master.openSubscription() filter { it.id == IDS.Second }
         val ts3 = sender + master.openSubscription() filter { it.id == IDS.Third }
-        val dispatcher = Dispatchers.Default // EmptyCoroutineContext
+        val dispatcher = EmptyCoroutineContext // Dispatchers.Default
         val count = 10000
         val send1 = launch(dispatcher + CoroutineName("send 1")) {
             repeat(count) {

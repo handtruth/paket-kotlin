@@ -49,8 +49,8 @@ abstract class Knot : Closeable {
         }
 
         suspend fun stop() {
-            leaveCnt.incrementAndGet()
             mutex.withLock {
+                leaveCnt.incrementAndGet()
                 if (leaveCnt.compareAndSet(fibersActing.value, 0)) {
                     leave()
                     leaveCnt.value = 0
