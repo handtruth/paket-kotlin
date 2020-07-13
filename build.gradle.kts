@@ -4,6 +4,7 @@ plugins {
     id("com.gladed.androidgitversion")
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("kotlinx-atomicfu")
     `maven-publish`
     jacoco
 }
@@ -16,6 +17,10 @@ group = "com.handtruth.mc"
 version = androidGitVersion.name()
 
 val platformVersion: String by project
+
+atomicfu {
+    //dependenciesVersion = null
+}
 
 allprojects {
     repositories {
@@ -48,6 +53,7 @@ kotlin {
     }
     sourceSets {
         fun kotlinx(name: String) = "org.jetbrains.kotlinx:kotlinx-$name"
+        fun kommon(name: String) = "com.handtruth.kommon:kommon-$name"
         fun mc(name: String) = "$group:$name"
         all {
             with (languageSettings) {
@@ -63,14 +69,18 @@ kotlin {
                 val platform = dependencies.platform("com.handtruth.internal:platform:$platformVersion")
                 implementation(platform)
                 compileOnly(platform)
+                api(platform)
             }
         }
+        val atomicfuVersion: String by project
         val commonMain by getting {
             dependencies {
-                implementation(kotlin("stdlib"))
-                implementation(kotlinx("io"))
+                api(kotlin("stdlib"))
+                api(kotlinx("io"))
                 implementation(kotlinx("coroutines-core-common"))
                 implementation(kotlinx("serialization-runtime-common"))
+                //implementation(kommon("concurrent"))
+                //implementation("org.jetbrains.kotlinx:atomicfu-common:$atomicfuVersion")
                 compileOnly(mc("nbt-kotlin"))
                 compileOnly("io.ktor:ktor-io")
                 compileOnly("com.soywiz.korlibs.korio:korio")
@@ -88,10 +98,11 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation(kotlinx("coroutines-core"))
+                api(kotlinx("coroutines-core"))
                 implementation(kotlinx("serialization-runtime"))
-                implementation(kotlin("stdlib-jdk8"))
+                api(kotlin("stdlib-jdk8"))
                 implementation(kotlin("reflect"))
+                //implementation("org.jetbrains.kotlinx:atomicfu:$atomicfuVersion")
                 compileOnly("io.ktor:ktor-io-jvm")
             }
         }
@@ -105,8 +116,8 @@ kotlin {
         if(useJSBool) {
             val jsMain by getting {
                 dependencies {
-                    implementation(kotlin("stdlib-js"))
-                    implementation(kotlinx("coroutines-core-js"))
+                    api(kotlin("stdlib-js"))
+                    api(kotlinx("coroutines-core-js"))
                     implementation(kotlinx("serialization-runtime-js"))
                     compileOnly("io.ktor:ktor-io-js")
                 }

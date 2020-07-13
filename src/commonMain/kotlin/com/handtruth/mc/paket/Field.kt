@@ -14,10 +14,11 @@ open class Field<T>(private val codec: Codec<T>, initial: T) {
     }
 
     var value: T = initial
-    operator fun getValue(me: Paket, property: KProperty<*>): T {
+    operator fun getValue(me: Any?, property: KProperty<*>): T {
         return value
     }
-    operator fun setValue(me: Paket, property: KProperty<*>, value: T) {
+
+    operator fun setValue(me: Any?, property: KProperty<*>, value: T) {
         this.value = value
     }
 

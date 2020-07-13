@@ -4,19 +4,25 @@ import kotlinx.io.pool.DefaultPool
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-interface PaketSource<out P: Paket> {
+interface PaketSource<out P : Paket> {
     fun produce(): P
 }
 
-interface PaketCreator<P: Paket> : PaketSource<P>
+private object EmptyPaketSource : PaketSource<Nothing> {
+    override fun produce() = throw UnsupportedOperationException()
+}
 
-interface PaketPool<P: Paket> : PaketSource<P> {
+fun <P : Paket> emptyPaketSource(): PaketSource<P> = EmptyPaketSource
+
+interface PaketCreator<P : Paket> : PaketSource<P>
+
+interface PaketPool<P : Paket> : PaketSource<P> {
     fun recycle(paket: P)
 }
 
-interface PaketSingleton<P: Paket> : PaketSource<P>
+interface PaketSingleton<P : Paket> : PaketSource<P>
 
-inline fun <P: Paket, R> PaketPool<P>.take(block: (P) -> R): R {
+inline fun <P : Paket, R> PaketPool<P>.take(block: (P) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

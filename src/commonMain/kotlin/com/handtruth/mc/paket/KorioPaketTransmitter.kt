@@ -89,7 +89,7 @@ private class KorioPaketReceiver(private val stream: AsyncInputStream) : Abstrac
         drop()
     }
 
-    override suspend fun peek(paket: Paket) {
+    override suspend fun peek(paket: Paket) = breakableAction {
         if (!isCaught)
             catchOrdinal()
         buffer!!.input.preview {
